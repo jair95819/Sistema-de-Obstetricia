@@ -27,10 +27,7 @@
 .logo-minsa {
   height: 60px;
   width: auto;
-  /* Placeholder: rectangulo blanco */
-  background-color: white;
-  padding: 10px 20px;
-  border-radius: 4px;
+  object-fit: contain;
 }
 
 .system-title {

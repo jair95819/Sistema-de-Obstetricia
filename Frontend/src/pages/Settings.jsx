@@ -43,7 +43,7 @@ const Settings = ({ onNavigate }) => {
             <span className="hamburger-icon">☰</span>
           </button>
           <img 
-            src="/logo-minsa.png" 
+            src="/logo.webp" 
             alt="Ministerio de Salud - Perú" 
             className="header-logo"
           />

@@ -32,11 +32,11 @@ const Dashboard = ({ onNavigate }) => {
           >
             <span className="hamburger-icon">☰</span>
           </button>
-          <img 
-            src="/logo-minsa.png" 
-            alt="Ministerio de Salud - Perú" 
-            className="header-logo"
-          />
+            <img 
+              src="/logo.webp" 
+              alt="Ministerio de Salud - Perú" 
+              className="header-logo"
+            />
         </div>
         <h1 className="header-title">SISTEMA DE SEGUIMIENTO DE METAS DE OBSTETRICIA</h1>
       </header>

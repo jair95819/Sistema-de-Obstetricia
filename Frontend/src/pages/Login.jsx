@@ -31,7 +31,7 @@ const Login = ({ onLogin }) => {
       <div className="login-left-panel">
         <div className="logo-container">
           <img 
-            src="/logo-minsa.png" 
+            src="/logo.webp" 
             alt="Ministerio de Salud - Perú" 
             className="logo-minsa"
           />

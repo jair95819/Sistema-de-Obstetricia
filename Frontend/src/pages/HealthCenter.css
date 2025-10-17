@@ -47,9 +47,7 @@
 .header-logo {
   height: 50px;
   width: auto;
-  background-color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
+  object-fit: contain;
 }
 
 .header-title {
@@ -328,7 +326,6 @@
 
   .header-logo {
     height: 40px;
-    padding: 6px 12px;
   }
 
   .header-title {
