@@ -4,6 +4,7 @@ import IdentityValidation from './pages/IdentityValidation'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import HealthCenter from './pages/HealthCenter'
+import Settings from './pages/Settings'
 import './App.css'
 
 function App() {
@@ -32,6 +33,9 @@ function App() {
       )}
       {currentPage === 'health-center' && (
         <HealthCenter onNavigate={handleNavigate} />
+      )}
+      {currentPage === 'config' && (
+        <Settings onNavigate={handleNavigate} />
       )}
     </>
   )
