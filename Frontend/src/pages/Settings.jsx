@@ -5,7 +5,7 @@ import './Settings.css';
 const Settings = ({ onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [language, setLanguage] = useState('Español');
-  const [fontSize, setFontSize] = useState(40);
+  const [fontSize, setFontSize] = useState('Mediana');
   const [contrast, setContrast] = useState('Apagado');
 
   const toggleMenu = () => {
@@ -86,19 +86,18 @@ const Settings = ({ onNavigate }) => {
             {/* Font Size Setting */}
             <div className="setting-item">
               <label className="setting-label">Tamaño de letra</label>
-              <div className="setting-control font-size-control">
-                <input 
-                  type="range"
-                  min="20"
-                  max="60"
+              <div className="setting-control">
+                <select 
+                  className="setting-select"
                   value={fontSize}
                   onChange={handleFontSizeChange}
-                  className="setting-slider"
-                />
-                <div className="font-size-display">
-                  <span className="percentage">{fontSize}%</span>
-                  <span className="aa-icon">Aa</span>
-                </div>
+                >
+                  <option value="Muy pequeña">Muy pequeña</option>
+                  <option value="Pequeña">Pequeña</option>
+                  <option value="Mediana">Mediana</option>
+                  <option value="Grande">Grande</option>
+                  <option value="Muy grande">Muy grande</option>
+                </select>
               </div>
             </div>
 
