@@ -65,10 +65,11 @@ const Dashboard = ({ onNavigate }) => {
               onClick={item.action}
             >
               <div className="card-image-container">
-                <div className="card-image-placeholder">
-                  {/* Placeholder para la imagen */}
-                  <div className="image-rect"></div>
-                </div>
+                <img 
+                  src="/Consultar obstetra.webp" 
+                  alt={item.title}
+                  className="card-image"
+                />
               </div>
               <div className="card-content">
                 <h3 className="card-title">{item.title}</h3>
