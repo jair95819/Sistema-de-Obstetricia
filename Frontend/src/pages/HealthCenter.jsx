@@ -38,6 +38,8 @@ const HealthCenter = ({ onNavigate }) => {
             src="/logo.webp" 
             alt="Ministerio de Salud - Perú" 
             className="header-logo"
+            onClick={() => onNavigate('dashboard')}
+            style={{ cursor: 'pointer' }}
           />
         </div>
         <h1 className="header-title">SISTEMA DE SEGUIMIENTO DE METAS DE OBSTETRICIA</h1>
