@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import './Login.css';
+import './PasswordChange.css';
 
-const Login = ({ onLogin, onPasswordChange }) => {
+const PasswordChange = ({ onBack, onHome }) => {
   const [formData, setFormData] = useState({
-    documentNumber: '',
-    password: '',
-    rememberMe: false
+    newPassword: '',
+    confirmPassword: '',
   });
 
   const handleInputChange = (e) => {
@@ -18,10 +17,14 @@ const Login = ({ onLogin, onPasswordChange }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
-    // Navegar a la página de validación
-    if (onLogin) {
-      onLogin();
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+    console.log('Password change attempt:', formData);
+    // Volver a login después de cambiar contraseña
+    if (onBack) {
+      onBack();
     }
   };
 
@@ -47,77 +50,63 @@ const Login = ({ onLogin, onPasswordChange }) => {
       {/* Panel derecho - Formulario */}
       <div className="login-right-panel">
         <div className="login-form-container">
-          <h2 className="login-title">Ingresa al Sistema</h2>
+          <h2 className="login-title">Cambiar Contraseña</h2>
           
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label htmlFor="documentNumber" className="form-label">
-                Nro. Documento
-              </label>
-              <div className="input-wrapper">
-                <input
-                  type="text"
-                  id="documentNumber"
-                  name="documentNumber"
-                  value={formData.documentNumber}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  placeholder=""
-                  required
-                />
-                <span className="input-icon">👤</span>
-              </div>
-              <span className="input-hint">
-                El Nro. Documento debe tener 8 dígitos de largo
-              </span>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                Contraseña
+              <label htmlFor="newPassword" className="form-label">
+                Nueva Contraseña
               </label>
               <div className="input-wrapper">
                 <input
                   type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
+                  id="newPassword"
+                  name="newPassword"
+                  value={formData.newPassword}
                   onChange={handleInputChange}
                   className="form-input"
                   placeholder=""
                   required
+                  minLength={8}
                 />
-                <span className="input-icon">🔒</span>
+                <span className="input-icon">�</span>
               </div>
               <span className="input-hint">
                 La contraseña debe tener al menos 8 dígitos de largo
               </span>
             </div>
 
-            <div className="form-group-checkbox">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  className="checkbox-input"
-                />
-                <span className="checkbox-text">Recuérdame</span>
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label">
+                Confirmar Nueva Contraseña
               </label>
-              <a href="#" 
-                 className="forgot-password"
-                 onClick={ (e) => {
-                    e.preventDefault();
-                    if (onPasswordChange) onPasswordChange();
-                 }}>
-                ¿Olvidaste tu contraseña?
-              </a>
+              <div className="input-wrapper">
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder=""
+                  required
+                  minLength={8}
+                />
+                <span className="input-icon">🔒</span>
+              </div>
+              <span className="input-hint">
+                La contraseña debe coincidir
+              </span>
             </div>
 
-            <button type="submit" className="submit-button">
-              INGRESAR A LA PLATAFORMA
-            </button>
+            <div className="form-buttons">
+              <button type="button" onClick={onBack} className="back-button">
+                Volver
+              </button>
+              <button type="submit" className="submit-button">
+                CAMBIAR CONTRASEÑA
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -125,4 +114,4 @@ const Login = ({ onLogin, onPasswordChange }) => {
   );
 };
 
-export default Login;
+export default PasswordChange;
