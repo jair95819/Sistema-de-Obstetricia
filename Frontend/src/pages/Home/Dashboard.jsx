@@ -14,7 +14,7 @@ const Dashboard = ({ onNavigate }) => {
       id: 1,
       title: 'Añadir atención',
       description: 'Registra una nueva atención de un/una integrante del área de obstetricia.',
-      image: '/Consultar obstetra.webp',
+      image: null,
       action: () => onNavigate('atenciones')
     },
     {
@@ -89,6 +89,7 @@ const Dashboard = ({ onNavigate }) => {
                 </div>
               ) : (
                 <div className="card-icon-container">
+                  {item.id === 1 && <span className="card-icon">📝</span>}
                   {item.id === 2 && <span className="card-icon">🎯</span>}
                   {item.id === 3 && <span className="card-icon">👤</span>}
                 </div>

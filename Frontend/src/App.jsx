@@ -11,6 +11,7 @@ import Atenciones from './pages/Atenciones/Atenciones'
 import RegistrarAtenciones from './pages/Atenciones/RegistrarAtenciones'
 import VisualizarAtenciones from './pages/Atenciones/VisualizarAtenciones'
 import RegistroReprogramacion from './pages/Atenciones/RegistroReprogramacion'
+import GenerarReferencia from './pages/Atenciones/GenerarReferencia'
 import './App.css'
 import PasswordChange from './pages/Login/PasswordChange'
 
@@ -79,6 +80,9 @@ function App() {
       )}
       {currentPage === 'registro-reprogramacion' && (
         <RegistroReprogramacion onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'generar-referencia' && (
+        <GenerarReferencia onNavigate={handleNavigate} onBack={handleBack} />
       )}
     </>
   )

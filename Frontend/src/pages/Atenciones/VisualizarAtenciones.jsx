@@ -1,59 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Sidebar from '../../components/Sidebar/Sidebar';
 import './VisualizarAtenciones.css';
 
 const VisualizarAtenciones = ({ onNavigate, onBack }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('todos');
+  const [atenciones, setAtenciones] = useState([]);
 
-  // Datos de ejemplo - en producción vendrían de la API
-  const [atenciones] = useState([
-    {
-      id: 'AT-001',
-      dniPaciente: '12345678',
-      nombrePaciente: 'María García López',
-      fechaRealizacion: '2025-01-15',
-      tipoAtencion: 'Control Prenatal',
-      estado: 'Completada',
-      seReprogramo: 'No'
-    },
-    {
-      id: 'AT-002',
-      dniPaciente: '87654321',
-      nombrePaciente: 'Ana Rodríguez Sánchez',
-      fechaRealizacion: '2025-01-16',
-      tipoAtencion: 'Consulta',
-      estado: 'Pendiente seguimiento',
-      seReprogramo: 'Sí'
-    },
-    {
-      id: 'AT-003',
-      dniPaciente: '11223344',
-      nombrePaciente: 'Carmen Flores Torres',
-      fechaRealizacion: '2025-01-17',
-      tipoAtencion: 'Urgencia',
-      estado: 'Completada',
-      seReprogramo: 'No'
-    },
-    {
-      id: 'AT-004',
-      dniPaciente: '55667788',
-      nombrePaciente: 'Rosa Martínez Pérez',
-      fechaRealizacion: '2025-01-18',
-      tipoAtencion: 'Control Prenatal',
-      estado: 'Completada',
-      seReprogramo: 'No'
-    },
-    {
-      id: 'AT-005',
-      dniPaciente: '99887766',
-      nombrePaciente: 'Lucía Hernández Ruiz',
-      fechaRealizacion: '2025-01-19',
-      tipoAtencion: 'Posparto',
-      estado: 'Pendiente seguimiento',
-      seReprogramo: 'No'
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  // Cargar atenciones del localStorage al montar el componente
+  useEffect(() => {
+    const atencionesGuardadas = localStorage.getItem('atenciones');
+    if (atencionesGuardadas) {
+      const atencionesData = JSON.parse(atencionesGuardadas);
+      setAtenciones(atencionesData);
+    } else {
+      // Datos de ejemplo si no hay nada en localStorage
+      const datosEjemplo = [
+        {
+          id: 'AT-001',
+          dniPaciente: '12345678',
+          nombrePaciente: 'María García López',
+          fechaRealizacion: '2025-01-15',
+          tipoAtencion: 'Programa 1: Control Prenatal',
+          estado: 'Completada',
+          seReprogramo: 'No'
+        },
+        {
+          id: 'AT-002',
+          dniPaciente: '87654321',
+          nombrePaciente: 'Ana Rodríguez Sánchez',
+          fechaRealizacion: '2025-01-16',
+          tipoAtencion: 'Programa 2: Planificación Familiar',
+          estado: 'Pendiente seguimiento',
+          seReprogramo: 'Sí'
+        }
+      ];
+      setAtenciones(datosEjemplo);
     }
-  ]);
+  }, []);
 
   const handleSearch = () => {
     console.log('Buscar:', searchTerm);
@@ -102,6 +92,7 @@ const VisualizarAtenciones = ({ onNavigate, onBack }) => {
         <div className="header-left">
           <button 
             className="menu-toggle"
+            onClick={toggleMenu}
             aria-label="Menu"
           >
             <span className="hamburger-icon">☰</span>
@@ -116,6 +107,14 @@ const VisualizarAtenciones = ({ onNavigate, onBack }) => {
         </div>
         <h1 className="header-title">SISTEMA DE SEGUIMIENTO DE METAS DE OBSTETRICIA</h1>
       </header>
+
+      {/* Sidebar Component */}
+      <Sidebar 
+        isOpen={menuOpen} 
+        onClose={() => setMenuOpen(false)}
+        onNavigate={onNavigate}
+        currentPage="atenciones"
+      />
 
       {/* Main Content */}
       <main className="visualizar-main">

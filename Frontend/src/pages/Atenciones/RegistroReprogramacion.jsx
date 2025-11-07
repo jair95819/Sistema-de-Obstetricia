@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import Sidebar from '../../components/Sidebar/Sidebar';
 import './RegistroReprogramacion.css';
 
 const RegistroReprogramacion = ({ onNavigate, onBack }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [searchAtencion, setSearchAtencion] = useState('');
   const [formData, setFormData] = useState({
     nroAtencion: '',
@@ -11,6 +13,10 @@ const RegistroReprogramacion = ({ onNavigate, onBack }) => {
     motivoReprogramacion: ''
   });
   const [atencionFound, setAtencionFound] = useState(false);
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
 
   // Datos de ejemplo de atenciones (simula la búsqueda en BD)
   const atencionesDB = {
@@ -95,6 +101,7 @@ const RegistroReprogramacion = ({ onNavigate, onBack }) => {
         <div className="header-left">
           <button 
             className="menu-toggle"
+            onClick={toggleMenu}
             aria-label="Menu"
           >
             <span className="hamburger-icon">☰</span>
@@ -109,6 +116,14 @@ const RegistroReprogramacion = ({ onNavigate, onBack }) => {
         </div>
         <h1 className="header-title">SISTEMA DE SEGUIMIENTO DE METAS DE OBSTETRICIA</h1>
       </header>
+
+      {/* Sidebar Component */}
+      <Sidebar 
+        isOpen={menuOpen} 
+        onClose={() => setMenuOpen(false)}
+        onNavigate={onNavigate}
+        currentPage="atenciones"
+      />
 
       {/* Main Content */}
       <main className="reprogramacion-main">

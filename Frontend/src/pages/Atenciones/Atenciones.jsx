@@ -13,26 +13,26 @@ const Atenciones = ({ onNavigate, onBack, onHome }) => {
     {
       id: 1,
       title: 'Registrar Atenciones',
-      image: '/atencion-obstetricia.jpg',
+      emoji: '📝',
       action: () => onNavigate('registrar-atenciones')
     },
     {
       id: 2,
       title: 'Visualizar Atenciones Realizadas',
-      image: '/atencion-obstetricia.jpg',
+      emoji: '📊',
       action: () => onNavigate('visualizar-atenciones')
     },
     {
       id: 3,
       title: 'Registrar Reprogramaciones',
-      image: '/atencion-obstetricia.jpg',
+      emoji: '📅',
       action: () => onNavigate('registro-reprogramacion')
     },
     {
       id: 4,
       title: 'Generar Referencias',
-      image: '/atencion-obstetricia.jpg',
-      action: () => console.log('Navegar a Generar Referencias')
+      emoji: '📄',
+      action: () => onNavigate('generar-referencia')
     }
   ];
 
@@ -79,12 +79,8 @@ const Atenciones = ({ onNavigate, onBack, onHome }) => {
               className="atencion-card"
               onClick={item.action}
             >
-              <div className="card-image-wrapper">
-                <img 
-                  src={item.image} 
-                  alt={item.title}
-                  className="card-image"
-                />
+              <div className="card-emoji-wrapper">
+                <span className="card-emoji">{item.emoji}</span>
               </div>
               <div className="card-footer">
                 <h3 className="card-title">{item.title}</h3>

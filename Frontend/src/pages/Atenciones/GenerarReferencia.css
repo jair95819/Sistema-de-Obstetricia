@@ -1,0 +1,532 @@
+/* General Container */
+.generar-referencia-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(180deg, #F8E7F0 0%, #EDD5E8 100%);
+}
+
+/* Header Styles */
+.referencia-header {
+  background: linear-gradient(135deg, #8B0000 0%, #6B0000 100%);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger-icon {
+  line-height: 1;
+}
+
+.header-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header-title {
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 0;
+  flex: 1;
+}
+
+/* Main Content */
+.referencia-main {
+  flex: 1;
+  padding: 30px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: #8B0000;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #6B0000;
+  text-decoration: underline;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* Documento de Referencia */
+.referencia-documento {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.documento-header {
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: white;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo-doc {
+  height: 60px;
+  width: auto;
+  background: white;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.titulo-documento h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.titulo-documento h4 {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  color: #ecf0f1;
+}
+
+.titulo-documento p {
+  margin: 0;
+  font-size: 1rem;
+  color: #bdc3c7;
+}
+
+.documento-contenido {
+  padding: 2rem;
+}
+
+/* Secciones */
+.seccion-paciente,
+.seccion-atencion,
+.seccion-referencia {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.seccion-paciente h4,
+.seccion-atencion h4,
+.seccion-referencia h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.datos-grid div {
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+/* Formulario */
+.formulario-referencia {
+  width: 100%;
+}
+
+.form-row,
+.form-row-split {
+  margin-bottom: 1.5rem;
+}
+
+.form-row-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-field-half {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row label,
+.form-field-half label {
+  display: block;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea,
+.form-field-half input,
+.form-field-half select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus,
+.form-field-half input:focus,
+.form-field-half select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Sección de Firma */
+.firma-seccion {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.fecha-emision {
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.firma-profesional {
+  text-align: center;
+}
+
+.linea-firma {
+  width: 200px;
+  border-bottom: 2px solid #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.firma-profesional p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+/* Botones de Acción */
+.acciones-documento {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-imprimir,
+.btn-exportar,
+.btn-generar {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.btn-imprimir {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+
+.btn-imprimir:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-exportar {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+}
+
+.btn-exportar:hover {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.btn-generar {
+  background: linear-gradient(135deg, #8B0000 0%, #6B0000 100%);
+  color: white;
+}
+
+.btn-generar:hover {
+  background: linear-gradient(135deg, #6B0000 0%, #4B0000 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+}
+
+.back-button {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Estilos de impresión */
+@media print {
+  .referencia-header,
+  .back-link,
+  .acciones-documento,
+  .page-title {
+    display: none !important;
+  }
+  
+  .referencia-main {
+    padding: 0;
+    max-width: none;
+  }
+  
+  .referencia-documento {
+    box-shadow: none;
+    border: 1px solid #000;
+    margin: 0;
+  }
+  
+  .documento-header {
+    background: white !important;
+    color: black !important;
+    border-bottom: 2px solid #000;
+  }
+  
+  .titulo-documento h3,
+  .titulo-documento h4,
+  .titulo-documento p {
+    color: black !important;
+  }
+  
+  .seccion-paciente,
+  .seccion-atencion,
+  .seccion-referencia {
+    background: white !important;
+    border: 1px solid #000;
+  }
+  
+  .datos-grid div {
+    border: 1px solid #000;
+    background: white !important;
+  }
+  
+  .form-row input,
+  .form-row select,
+  .form-row textarea,
+  .form-field-half input,
+  .form-field-half select {
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}
+
+/* Estado sin datos */
+.sin-datos-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.sin-datos-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+}
+
+.sin-datos-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.sin-datos-card h3 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.sin-datos-card p {
+  color: #5a6c7d;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.acciones-sin-datos {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-registrar-atencion,
+.btn-ver-atenciones {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 200px;
+  color: white;
+}
+
+.btn-registrar-atencion {
+  background: linear-gradient(135deg, #8B0000 0%, #6B0000 100%);
+}
+
+.btn-registrar-atencion:hover {
+  background: linear-gradient(135deg, #6B0000 0%, #4B0000 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+}
+
+.btn-ver-atenciones {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+}
+
+.btn-ver-atenciones:hover {
+  background: linear-gradient(135deg, #444 0%, #333 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .referencia-main {
+    padding: 1rem;
+  }
+  
+  .header-title {
+    font-size: 1.2rem;
+    margin-left: 1rem;
+  }
+  
+  .documento-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .form-row-split {
+    grid-template-columns: 1fr;
+  }
+  
+  .firma-seccion {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .acciones-documento {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-imprimir,
+  .btn-exportar,
+  .btn-generar {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .sin-datos-card {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .sin-datos-icon {
+    font-size: 3rem;
+  }
+  
+  .acciones-sin-datos {
+    gap: 0.5rem;
+  }
+  
+  .btn-registrar-atencion,
+  .btn-ver-atenciones {
+    min-width: 100%;
+  }
+}
