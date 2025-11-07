@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import Login from './pages/Login'
-import IdentityValidation from './pages/IdentityValidation'
-import Dashboard from './pages/Dashboard'
-import Profile from './pages/Profile'
+import Login from './pages/Login/Login'
+import IdentityValidation from './pages/Login/IdentityValidation'
+import Dashboard from './pages/Home/Dashboard'
+import Profile from './pages/Profile/Profile'
 import HealthCenter from './pages/HealthCenter'
-import Settings from './pages/Settings'
+import Settings from './pages/Settings/Settings'
 import './App.css'
 
 function App() {
