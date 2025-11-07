@@ -12,12 +12,25 @@ const Dashboard = ({ onNavigate }) => {
   const menuItems = [
     {
       id: 1,
-      title: 'Consultar Obstretras',
-      description: 'Consulta la información de un/una integrante del área de obstetricia.',
-      image: '/consultar-obstetras.jpg',
-      action: () => console.log('Navegar a Consultar Obstretras')
+      title: 'Añadir atención',
+      description: 'Registra una nueva atención de un/una integrante del área de obstetricia.',
+      image: '/Consultar obstetra.webp',
+      action: () => onNavigate('atenciones')
+    },
+    {
+      id: 2,
+      title: 'Ver el avance de Metas',
+      description: 'Consulta el progreso y cumplimiento de las metas establecidas.',
+      image: null,
+      action: () => onNavigate('metas')
+    },
+    {
+      id: 3,
+      title: 'Ver mi perfil',
+      description: 'Revisa y actualiza tu información personal y profesional.',
+      image: null,
+      action: () => onNavigate('profile')
     }
-    // Aquí se pueden agregar más cards en el futuro
   ];
 
   return (
@@ -36,6 +49,8 @@ const Dashboard = ({ onNavigate }) => {
               src="/logo.webp" 
               alt="Ministerio de Salud - Perú" 
               className="header-logo"
+              onClick={() => onNavigate('dashboard')}
+              style={{ cursor: 'pointer' }}
             />
         </div>
         <h1 className="header-title">SISTEMA DE SEGUIMIENTO DE METAS DE OBSTETRICIA</h1>
@@ -64,13 +79,20 @@ const Dashboard = ({ onNavigate }) => {
               className="menu-card"
               onClick={item.action}
             >
-              <div className="card-image-container">
-                <img 
-                  src="/Consultar obstetra.webp" 
-                  alt={item.title}
-                  className="card-image"
-                />
-              </div>
+              {item.image ? (
+                <div className="card-image-container">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="card-image"
+                  />
+                </div>
+              ) : (
+                <div className="card-icon-container">
+                  {item.id === 2 && <span className="card-icon">🎯</span>}
+                  {item.id === 3 && <span className="card-icon">👤</span>}
+                </div>
+              )}
               <div className="card-content">
                 <h3 className="card-title">{item.title}</h3>
                 <p className="card-description">{item.description}</p>
