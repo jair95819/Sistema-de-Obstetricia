@@ -3,10 +3,12 @@ import './Login.css';
 
 const Login = ({ onLogin, onPasswordChange }) => {
   const [formData, setFormData] = useState({
-    documentNumber: '',
+    email: '',
     password: '',
     rememberMe: false
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -16,12 +18,42 @@ const Login = ({ onLogin, onPasswordChange }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
-    // Navegar a la página de validación
-    if (onLogin) {
-      onLogin();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:4000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Para cookies
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login exitoso
+        console.log('Login successful:', data);
+        localStorage.setItem('user', JSON.stringify(data));
+        if (onLogin) {
+          onLogin();
+        }
+      } else {
+        // Error en login
+        setError(data.message || 'Error al iniciar sesión');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Error de conexión. Verifique su conexión a internet.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,26 +81,32 @@ const Login = ({ onLogin, onPasswordChange }) => {
         <div className="login-form-container">
           <h2 className="login-title">Ingresa al Sistema</h2>
           
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label htmlFor="documentNumber" className="form-label">
-                Nro. Documento
+              <label htmlFor="email" className="form-label">
+                Email
               </label>
               <div className="input-wrapper">
                 <input
-                  type="text"
-                  id="documentNumber"
-                  name="documentNumber"
-                  value={formData.documentNumber}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
                   className="form-input"
                   placeholder=""
                   required
                 />
-                <span className="input-icon">👤</span>
+                <span className="input-icon">📧</span>
               </div>
               <span className="input-hint">
-                El Nro. Documento debe tener 8 dígitos de largo
+                Ingrese su email registrado en el sistema
               </span>
             </div>
 
@@ -115,8 +153,8 @@ const Login = ({ onLogin, onPasswordChange }) => {
               </a>
             </div>
 
-            <button type="submit" className="submit-button">
-              INGRESAR A LA PLATAFORMA
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? 'INGRESANDO...' : 'INGRESAR A LA PLATAFORMA'}
             </button>
           </form>
         </div>
