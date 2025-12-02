@@ -1,4 +1,4 @@
-import { sql, connectDB } from '../db.js';
+import { sql, connectDB } from '../config/db.js';
 
 // Estructura de la tabla usuarios:
 // UsuarioID int (PK)
