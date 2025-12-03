@@ -12,6 +12,11 @@ import RegistrarAtenciones from './pages/Atenciones/RegistrarAtenciones'
 import VisualizarAtenciones from './pages/Atenciones/VisualizarAtenciones'
 import RegistroReprogramacion from './pages/Atenciones/RegistroReprogramacion'
 import GenerarReferencia from './pages/Atenciones/GenerarReferencia'
+import AdminDashboard from './pages/Admin/AdminDashboard'
+import CrudObstetras from './pages/Admin/CrudObstetras'
+import CrudPacientes from './pages/Admin/CrudPacientes'
+import CrudMetas from './pages/Admin/CrudMetas'
+import CrudProgramaAtencion from './pages/Admin/CrudProgramaAtencion'
 import './App.css'
 import PasswordChange from './pages/Login/PasswordChange'
 
@@ -83,6 +88,21 @@ function App() {
       )}
       {currentPage === 'generar-referencia' && (
         <GenerarReferencia onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'admin-dashboard' && (
+        <AdminDashboard onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'crud-obstetras' && (
+        <CrudObstetras onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'crud-pacientes' && (
+        <CrudPacientes onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'crud-metas' && (
+        <CrudMetas onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'crud-programas' && (
+        <CrudProgramaAtencion onNavigate={handleNavigate} onBack={handleBack} />
       )}
     </>
   )

@@ -54,6 +54,16 @@ const Sidebar = ({ isOpen, onClose, onNavigate, currentPage }) => {
                 Mi perfil
               </a>
             </li>
+            <li className="sidebar-item">
+              <a 
+                href="#" 
+                className={`sidebar-link ${currentPage === 'admin' ? 'active' : ''}`}
+                onClick={(e) => { e.preventDefault(); handleNavigation('admin-dashboard'); }}
+              >
+                <span className="menu-icon">🔧</span>
+                Administración
+              </a>
+            </li>
           </ul>
           
           <div className="sidebar-bottom">
