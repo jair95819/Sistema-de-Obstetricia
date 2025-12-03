@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
 import jwt from "jsonwebtoken";
-import { TOKEN_SECRET } from "../config.js";
+import { TOKEN_SECRET } from "../config/config.js";
 import {
   getAllUsers,
   getUserById,
