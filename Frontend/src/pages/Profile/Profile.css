@@ -284,3 +284,42 @@
     padding: 20px;
   }
 }
+
+/* Loading and Error States */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8B0000;
+}
+
+.loading-state p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.error-message {
+  background: #fed7d7;
+  color: #742a2a;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* Status badge for profile */
+.info-value.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.info-value.status-activo {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.info-value.status-inactivo {
+  background: #fed7d7;
+  color: #742a2a;
+}

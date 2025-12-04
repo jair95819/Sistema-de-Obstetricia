@@ -41,6 +41,10 @@ const Login = ({ onLogin, onPasswordChange }) => {
       if (response.ok) {
         // Login exitoso
         console.log('Login successful:', data);
+        // Guardar token y usuario en localStorage
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         localStorage.setItem('user', JSON.stringify(data));
         if (onLogin) {
           onLogin();

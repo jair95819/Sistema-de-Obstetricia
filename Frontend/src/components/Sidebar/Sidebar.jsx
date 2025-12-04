@@ -1,12 +1,44 @@
+import { useState, useEffect } from 'react';
 import './Sidebar.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const Sidebar = ({ isOpen, onClose, onNavigate, currentPage }) => {
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch(`${API_URL}/my-profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserRole(data.nombre_rol);
+        }
+      } catch (err) {
+        console.error('Error cargando rol de usuario:', err);
+      }
+    };
+    
+    fetchUserRole();
+  }, []);
+
   const handleNavigation = (page) => {
     onClose();
     if (onNavigate) {
       onNavigate(page);
     }
   };
+
+  // Verificar si el usuario puede ver el menú de administración
+  const canAccessAdmin = userRole && userRole !== 'Obstetra';
 
   return (
     <>
@@ -54,16 +86,18 @@ const Sidebar = ({ isOpen, onClose, onNavigate, currentPage }) => {
                 Mi perfil
               </a>
             </li>
-            <li className="sidebar-item">
-              <a 
-                href="#" 
-                className={`sidebar-link ${currentPage === 'admin' ? 'active' : ''}`}
-                onClick={(e) => { e.preventDefault(); handleNavigation('admin-dashboard'); }}
-              >
-                <span className="menu-icon">🔧</span>
-                Administración
-              </a>
-            </li>
+            {canAccessAdmin && (
+              <li className="sidebar-item">
+                <a 
+                  href="#" 
+                  className={`sidebar-link ${currentPage === 'admin' ? 'active' : ''}`}
+                  onClick={(e) => { e.preventDefault(); handleNavigation('admin-dashboard'); }}
+                >
+                  <span className="menu-icon">🔧</span>
+                  Administración
+                </a>
+              </li>
+            )}
           </ul>
           
           <div className="sidebar-bottom">

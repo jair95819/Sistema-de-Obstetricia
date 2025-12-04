@@ -1,9 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import './Dashboard.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const Dashboard = ({ onNavigate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/my-profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Si es obstetra, usar su nombre, sino usar username
+          if (data.esObstetra && data.obstetra) {
+            setUserName(data.obstetra.nombres);
+          } else {
+            setUserName(data.username);
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando nombre de usuario:', err);
+      }
+    };
+    
+    fetchUserName();
+  }, []);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -67,7 +97,7 @@ const Dashboard = ({ onNavigate }) => {
       {/* Main Content */}
       <main className="dashboard-main">
         <div className="welcome-section">
-          <h2 className="welcome-title">Hola, Juanito</h2>
+          <h2 className="welcome-title">Hola, {userName || 'Usuario'}</h2>
           <p className="welcome-subtitle">¿Qué vas a hacer hoy?</p>
         </div>
 

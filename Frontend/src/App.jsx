@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Login from './pages/Login/Login'
 import IdentityValidation from './pages/Login/IdentityValidation'
 import Dashboard from './pages/Home/Dashboard'
@@ -17,12 +17,50 @@ import CrudObstetras from './pages/Admin/CrudObstetras'
 import CrudPacientes from './pages/Admin/CrudPacientes'
 import CrudMetas from './pages/Admin/CrudMetas'
 import CrudProgramaAtencion from './pages/Admin/CrudProgramaAtencion'
+import CrudUsuarios from './pages/Admin/CrudUsuarios'
 import './App.css'
 import PasswordChange from './pages/Login/PasswordChange'
 
 function App() {
   const [history, setHistory] = useState(['login'])
+  const [loading, setLoading] = useState(true)
   const currentPage = history[history.length - 1]
+
+  // Verificar sesión al cargar la app
+  useEffect(() => {
+    const verifySession = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:4000/api/verify', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          // Sesión válida, ir al dashboard
+          setHistory(['dashboard']);
+        } else {
+          // Token inválido, limpiar y quedarse en login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        console.error('Error verificando sesión:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifySession();
+  }, []);
 
   // Navega a una nueva página (adelante)
   const handleNavigate = (page) => {
@@ -36,9 +74,26 @@ function App() {
     }
   }
 
-  // Vuelve a la página inicial
+  // Vuelve a la página inicial (logout)
   const handleHome = () => {
-    setHistory(['login'])
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setHistory(['login']);
+  }
+
+  // Mostrar loading mientras verifica sesión
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        background: 'linear-gradient(180deg, #E8F4FD 0%, #D1E8F8 100%)'
+      }}>
+        <p>Cargando...</p>
+      </div>
+    );
   }
 
   return (
@@ -103,6 +158,9 @@ function App() {
       )}
       {currentPage === 'crud-programas' && (
         <CrudProgramaAtencion onNavigate={handleNavigate} onBack={handleBack} />
+      )}
+      {currentPage === 'crud-usuarios' && (
+        <CrudUsuarios onNavigate={handleNavigate} onBack={handleBack} />
       )}
     </>
   )
