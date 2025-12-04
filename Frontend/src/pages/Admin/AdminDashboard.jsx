@@ -15,28 +15,35 @@ const AdminDashboard = ({ onNavigate, onBack }) => {
       title: 'Gestión de Obstetras',
       description: 'Administra el registro de obstetras del sistema.',
       emoji: '👩‍⚕️',
-      action: () => onNavigate('admin-obstetras')
+      action: () => onNavigate('crud-obstetras')
     },
     {
       id: 2,
       title: 'Gestión de Pacientes',
       description: 'Administra el registro de pacientes del sistema.',
       emoji: '🤰',
-      action: () => onNavigate('admin-pacientes')
+      action: () => onNavigate('crud-pacientes')
     },
     {
       id: 3,
       title: 'Gestión de Metas',
       description: 'Configura y administra las metas del área de obstetricia.',
       emoji: '🎯',
-      action: () => onNavigate('admin-metas')
+      action: () => onNavigate('crud-metas')
     },
     {
       id: 4,
       title: 'Programas de Atención',
       description: 'Administra los programas de atención disponibles.',
       emoji: '📋',
-      action: () => onNavigate('admin-programas')
+      action: () => onNavigate('crud-programas')
+    },
+    {
+      id: 5,
+      title: 'Gestión de Usuarios',
+      description: 'Administra los usuarios y permisos del sistema.',
+      emoji: '👤',
+      action: () => onNavigate('crud-usuarios')
     }
   ];
 

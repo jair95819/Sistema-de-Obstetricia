@@ -2,84 +2,264 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import './AdminCrud.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const CrudProgramaAtencion = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [programas, setProgramas] = useState([]);
+  const [areas, setAreas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    codigo: '',
-    nombre: '',
+    AreaDeObstetriciaID: '',
+    nombre_programa: '',
     descripcion: '',
-    tipoAtencion: '',
-    duracion: '',
-    requisitos: '',
-    poblacionObjetivo: '',
-    frecuencia: '',
-    responsable: '',
-    estado: 'Activo'
+    fecha_inicio: '',
+    fecha_fin: '',
+    estado: true,
+    tipo_programa: ''
   });
 
-  useEffect(() => {
-    const saved = localStorage.getItem('programasAtencion');
-    if (saved) {
-      setProgramas(JSON.parse(saved));
-    } else {
-      const datosEjemplo = [
-        { id: 1, codigo: 'PA-001', nombre: 'Control Prenatal', descripcion: 'Seguimiento integral de la gestación', tipoAtencion: 'Preventivo', duracion: '9 meses', requisitos: 'Gestante captada', poblacionObjetivo: 'Gestantes', frecuencia: 'Mensual', responsable: 'Dra. María García', estado: 'Activo' },
-        { id: 2, codigo: 'PA-002', nombre: 'Atención del Parto', descripcion: 'Atención profesional durante el trabajo de parto', tipoAtencion: 'Recuperativo', duracion: 'Variable', requisitos: 'Gestante en trabajo de parto', poblacionObjetivo: 'Gestantes', frecuencia: 'Por demanda', responsable: 'Dra. Ana López', estado: 'Activo' },
-        { id: 3, codigo: 'PA-003', nombre: 'Control Puerperal', descripcion: 'Seguimiento post parto', tipoAtencion: 'Preventivo', duracion: '42 días', requisitos: 'Puérpera', poblacionObjetivo: 'Puérperas', frecuencia: '7 días, 14 días, 42 días', responsable: 'Dra. María García', estado: 'Activo' },
-        { id: 4, codigo: 'PA-004', nombre: 'Planificación Familiar', descripcion: 'Orientación y provisión de métodos anticonceptivos', tipoAtencion: 'Preventivo', duracion: 'Continuo', requisitos: 'MEF', poblacionObjetivo: 'Mujeres en edad fértil', frecuencia: 'Según método', responsable: 'Dra. Carmen Ruiz', estado: 'Activo' }
-      ];
-      setProgramas(datosEjemplo);
-      localStorage.setItem('programasAtencion', JSON.stringify(datosEjemplo));
+  // Estados para asignación de obstetras
+  const [showObstetrasModal, setShowObstetrasModal] = useState(false);
+  const [selectedPrograma, setSelectedPrograma] = useState(null);
+  const [obstetrasAsignados, setObstetrasAsignados] = useState([]);
+  const [obstetrasDisponibles, setObstetrasDisponibles] = useState([]);
+  const [loadingObstetras, setLoadingObstetras] = useState(false);
+  const [showAsignarModal, setShowAsignarModal] = useState(false);
+  const [asignacionData, setAsignacionData] = useState({
+    ObstetraID: '',
+    fecha_inicio: '',
+    fecha_fin: '',
+    is_active: true
+  });
+
+  const fetchProgramas = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/programas`);
+      if (!response.ok) throw new Error('Error al cargar programas');
+      const data = await response.json();
+      setProgramas(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const fetchAreas = async () => {
+    try {
+      const response = await fetch(`${API_URL}/areas`);
+      if (!response.ok) throw new Error('Error al cargar áreas');
+      const data = await response.json();
+      setAreas(data);
+    } catch (err) {
+      console.error('Error cargando áreas:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProgramas();
+    fetchAreas();
   }, []);
 
-  const saveToStorage = (data) => {
-    localStorage.setItem('programasAtencion', JSON.stringify(data));
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
+
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-PE');
   };
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ codigo: '', nombre: '', descripcion: '', tipoAtencion: '', duracion: '', requisitos: '', poblacionObjetivo: '', frecuencia: '', responsable: '', estado: 'Activo' });
+    setFormData({
+      AreaDeObstetriciaID: '',
+      nombre_programa: '',
+      descripcion: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+      estado: true,
+      tipo_programa: ''
+    });
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      AreaDeObstetriciaID: item.AreaDeObstetriciaID || '',
+      nombre_programa: item.nombre_programa || '',
+      descripcion: item.descripcion || '',
+      fecha_inicio: formatDate(item.fecha_inicio),
+      fecha_fin: formatDate(item.fecha_fin),
+      estado: item.estado === true || item.estado === 1,
+      tipo_programa: item.tipo_programa || ''
+    });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('¿Está seguro de eliminar este programa?')) {
-      const updated = programas.filter(p => p.id !== id);
-      setProgramas(updated);
-      saveToStorage(updated);
+      try {
+        const response = await fetch(`${API_URL}/programas/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error al eliminar');
+        }
+        await fetchProgramas();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      const updated = programas.map(p => p.id === editingItem.id ? { ...formData, id: editingItem.id } : p);
-      setProgramas(updated);
-      saveToStorage(updated);
-    } else {
-      const newItem = { ...formData, id: Date.now() };
-      const updated = [...programas, newItem];
-      setProgramas(updated);
-      saveToStorage(updated);
+    try {
+      const payload = {
+        ...formData,
+        AreaDeObstetriciaID: formData.AreaDeObstetriciaID ? parseInt(formData.AreaDeObstetriciaID) : null,
+        estado: formData.estado ? 1 : 0
+      };
+      
+      let response;
+      if (editingItem) {
+        response = await fetch(`${API_URL}/programas/${editingItem.ProgramaDeAtencionID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        response = await fetch(`${API_URL}/programas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al guardar');
+      }
+      setShowModal(false);
+      await fetchProgramas();
+    } catch (err) {
+      alert(err.message);
     }
-    setShowModal(false);
+  };
+
+  const handleSearch = async () => {
+    if (searchTerm.trim()) {
+      try {
+        const response = await fetch(`${API_URL}/programas/search/${searchTerm}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProgramas(data);
+        }
+      } catch (err) {
+        console.error('Error en búsqueda:', err);
+      }
+    } else {
+      fetchProgramas();
+    }
+  };
+
+  // Funciones para gestionar obstetras asignados
+  const handleVerObstetras = async (programa) => {
+    setSelectedPrograma(programa);
+    setLoadingObstetras(true);
+    setShowObstetrasModal(true);
+    
+    try {
+      const [asignadosRes, disponiblesRes] = await Promise.all([
+        fetch(`${API_URL}/programas/${programa.ProgramaDeAtencionID}/obstetras`),
+        fetch(`${API_URL}/programas/${programa.ProgramaDeAtencionID}/obstetras-disponibles`)
+      ]);
+      
+      if (asignadosRes.ok) {
+        const asignados = await asignadosRes.json();
+        setObstetrasAsignados(asignados);
+      }
+      
+      if (disponiblesRes.ok) {
+        const disponibles = await disponiblesRes.json();
+        setObstetrasDisponibles(disponibles);
+      }
+    } catch (err) {
+      console.error('Error cargando obstetras:', err);
+    } finally {
+      setLoadingObstetras(false);
+    }
+  };
+
+  const handleAbrirAsignar = () => {
+    setAsignacionData({
+      ObstetraID: '',
+      fecha_inicio: formatDate(new Date().toISOString()),
+      fecha_fin: '',
+      is_active: true
+    });
+    setShowAsignarModal(true);
+  };
+
+  const handleAsignarObstetra = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_URL}/programas/${selectedPrograma.ProgramaDeAtencionID}/obstetras`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ObstetraID: parseInt(asignacionData.ObstetraID),
+          fecha_inicio: asignacionData.fecha_inicio,
+          fecha_fin: asignacionData.fecha_fin || null,
+          is_active: asignacionData.is_active ? 1 : 0
+        })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al asignar obstetra');
+      }
+      
+      setShowAsignarModal(false);
+      handleVerObstetras(selectedPrograma); // Recargar lista
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleEliminarAsignacion = async (obstetraId) => {
+    if (confirm('¿Está seguro de eliminar esta asignación?')) {
+      try {
+        const response = await fetch(`${API_URL}/programas/${selectedPrograma.ProgramaDeAtencionID}/obstetras/${obstetraId}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error al eliminar asignación');
+        }
+        
+        handleVerObstetras(selectedPrograma); // Recargar lista
+      } catch (err) {
+        alert(err.message);
+      }
+    }
   };
 
   const filteredData = programas.filter(p => 
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.tipoAtencion.toLowerCase().includes(searchTerm.toLowerCase())
+    p.nombre_programa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.tipo_programa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.nombre_area?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -108,55 +288,63 @@ const CrudProgramaAtencion = ({ onNavigate, onBack }) => {
           <input
             type="text"
             className="crud-search-input"
-            placeholder="Buscar por código, nombre o tipo de atención..."
+            placeholder="Buscar por nombre, tipo o área..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button className="btn-search">Buscar</button>
+          <button className="btn-search" onClick={handleSearch}>Buscar</button>
         </div>
 
+        {error && <div className="error-message">Error: {error}</div>}
+
         <div className="crud-table-container">
-          {filteredData.length > 0 ? (
+          {loading ? (
+            <div className="loading-state"><p>Cargando programas...</p></div>
+          ) : filteredData.length > 0 ? (
             <table className="crud-table">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Programa</th>
-                  <th>Tipo Atención</th>
-                  <th>Población Objetivo</th>
-                  <th>Frecuencia</th>
-                  <th>Responsable</th>
+                  <th>ID</th>
+                  <th>Nombre del Programa</th>
+                  <th>Área</th>
+                  <th>Tipo</th>
+                  <th>Fecha Inicio</th>
+                  <th>Fecha Fin</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredData.map(item => (
-                  <tr key={item.id}>
-                    <td><span className="codigo-badge">{item.codigo}</span></td>
+                  <tr key={item.ProgramaDeAtencionID}>
+                    <td><span className="codigo-badge">{item.ProgramaDeAtencionID}</span></td>
                     <td>
                       <div className="programa-info">
-                        <strong>{item.nombre}</strong>
-                        <small>{item.descripcion}</small>
+                        <strong>{item.nombre_programa}</strong>
+                        {item.descripcion && <small>{item.descripcion}</small>}
                       </div>
                     </td>
                     <td>
-                      <span className={`tipo-badge ${item.tipoAtencion === 'Preventivo' ? 'tipo-preventivo' : 'tipo-recuperativo'}`}>
-                        {item.tipoAtencion}
+                      <span className="area-badge">{item.nombre_area || 'Sin área'}</span>
+                    </td>
+                    <td>
+                      <span className={`tipo-badge ${item.tipo_programa === 'Preventivo' ? 'tipo-preventivo' : item.tipo_programa === 'Recuperativo' ? 'tipo-recuperativo' : ''}`}>
+                        {item.tipo_programa}
                       </span>
                     </td>
-                    <td>{item.poblacionObjetivo}</td>
-                    <td>{item.frecuencia}</td>
-                    <td>{item.responsable}</td>
+                    <td>{formatDisplayDate(item.fecha_inicio)}</td>
+                    <td>{formatDisplayDate(item.fecha_fin)}</td>
                     <td>
-                      <span className={`status-badge ${item.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
-                        {item.estado}
+                      <span className={`status-badge ${item.estado ? 'status-activo' : 'status-inactivo'}`}>
+                        {item.estado ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td>
                       <div className="crud-actions">
+                        <button className="btn-toggle" onClick={() => handleVerObstetras(item)} title="Ver obstetras asignados">👥</button>
                         <button className="btn-edit" onClick={() => handleEdit(item)}>Editar</button>
-                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Eliminar</button>
+                        <button className="btn-delete" onClick={() => handleDelete(item.ProgramaDeAtencionID)}>Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -179,71 +367,218 @@ const CrudProgramaAtencion = ({ onNavigate, onBack }) => {
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
             <form className="modal-form" onSubmit={handleSubmit}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Código</label>
-                  <input type="text" value={formData.codigo} onChange={e => setFormData({...formData, codigo: e.target.value})} placeholder="Ej: PA-001" required />
-                </div>
-                <div className="form-group">
-                  <label>Nombre del Programa</label>
-                  <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} required />
-                </div>
+              <div className="form-group">
+                <label>Nombre del Programa *</label>
+                <input 
+                  type="text" 
+                  value={formData.nombre_programa} 
+                  onChange={e => setFormData({...formData, nombre_programa: e.target.value})} 
+                  placeholder="Ingrese el nombre del programa"
+                  required 
+                  maxLength={200} 
+                />
               </div>
+              
               <div className="form-group">
                 <label>Descripción</label>
-                <textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} required rows={3}></textarea>
+                <textarea 
+                  value={formData.descripcion} 
+                  onChange={e => setFormData({...formData, descripcion: e.target.value})} 
+                  rows={3} 
+                  placeholder="Descripción del programa de atención"
+                ></textarea>
               </div>
+              
               <div className="form-row">
                 <div className="form-group">
-                  <label>Tipo de Atención</label>
-                  <select value={formData.tipoAtencion} onChange={e => setFormData({...formData, tipoAtencion: e.target.value})} required>
+                  <label>Área de Obstetricia</label>
+                  <select 
+                    value={formData.AreaDeObstetriciaID} 
+                    onChange={e => setFormData({...formData, AreaDeObstetriciaID: e.target.value})}
+                  >
+                    <option value="">Seleccione un área...</option>
+                    {areas.map(area => (
+                      <option key={area.AreaDeObstetriciaID} value={area.AreaDeObstetriciaID}>
+                        {area.nombre_area}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Tipo de Programa *</label>
+                  <select 
+                    value={formData.tipo_programa} 
+                    onChange={e => setFormData({...formData, tipo_programa: e.target.value})} 
+                    required
+                  >
                     <option value="">Seleccione...</option>
                     <option value="Preventivo">Preventivo</option>
                     <option value="Recuperativo">Recuperativo</option>
                     <option value="Promocional">Promocional</option>
+                    <option value="Control">Control</option>
+                    <option value="Seguimiento">Seguimiento</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Duración</label>
-                  <input type="text" value={formData.duracion} onChange={e => setFormData({...formData, duracion: e.target.value})} placeholder="Ej: 9 meses, 42 días" required />
-                </div>
               </div>
-              <div className="form-group">
-                <label>Requisitos</label>
-                <input type="text" value={formData.requisitos} onChange={e => setFormData({...formData, requisitos: e.target.value})} placeholder="Requisitos para acceder al programa" />
-              </div>
+              
               <div className="form-row">
                 <div className="form-group">
-                  <label>Población Objetivo</label>
-                  <select value={formData.poblacionObjetivo} onChange={e => setFormData({...formData, poblacionObjetivo: e.target.value})} required>
-                    <option value="">Seleccione...</option>
-                    <option value="Gestantes">Gestantes</option>
-                    <option value="Puérperas">Puérperas</option>
-                    <option value="Mujeres en edad fértil">Mujeres en edad fértil</option>
-                    <option value="Adolescentes">Adolescentes</option>
-                    <option value="General">General</option>
-                  </select>
+                  <label>Fecha de Inicio</label>
+                  <input 
+                    type="date" 
+                    value={formData.fecha_inicio} 
+                    onChange={e => setFormData({...formData, fecha_inicio: e.target.value})} 
+                  />
                 </div>
                 <div className="form-group">
-                  <label>Frecuencia</label>
-                  <input type="text" value={formData.frecuencia} onChange={e => setFormData({...formData, frecuencia: e.target.value})} placeholder="Ej: Mensual, Semanal" required />
+                  <label>Fecha de Fin</label>
+                  <input 
+                    type="date" 
+                    value={formData.fecha_fin} 
+                    onChange={e => setFormData({...formData, fecha_fin: e.target.value})} 
+                  />
                 </div>
               </div>
+              
               <div className="form-group">
-                <label>Responsable</label>
-                <input type="text" value={formData.responsable} onChange={e => setFormData({...formData, responsable: e.target.value})} required />
+                <label className="checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.estado} 
+                    onChange={e => setFormData({...formData, estado: e.target.checked})} 
+                  />
+                  <span>Programa Activo</span>
+                </label>
               </div>
-              <div className="form-group">
-                <label>Estado</label>
-                <select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})}>
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                  <option value="En Revisión">En Revisión</option>
-                </select>
-              </div>
+              
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-save">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Obstetras Asignados */}
+      {showObstetrasModal && (
+        <div className="modal-overlay" onClick={() => setShowObstetrasModal(false)}>
+          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">👥 Obstetras - {selectedPrograma?.nombre_programa}</h3>
+              <button className="modal-close" onClick={() => setShowObstetrasModal(false)}>×</button>
+            </div>
+            
+            <div className="obstetras-section">
+              <div className="obstetras-header">
+                <h4>Obstetras Asignados</h4>
+                <button className="btn-add btn-small" onClick={handleAbrirAsignar}>+ Asignar Obstetra</button>
+              </div>
+              
+              {loadingObstetras ? (
+                <div className="loading-state"><p>Cargando...</p></div>
+              ) : obstetrasAsignados.length > 0 ? (
+                <table className="crud-table">
+                  <thead>
+                    <tr>
+                      <th>Obstetra</th>
+                      <th>DNI</th>
+                      <th>Especialidad</th>
+                      <th>Fecha Inicio</th>
+                      <th>Fecha Fin</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {obstetrasAsignados.map(obs => (
+                      <tr key={obs.ObstetraID}>
+                        <td><strong>{obs.apellido}, {obs.nombre}</strong></td>
+                        <td>{obs.DNI}</td>
+                        <td>{obs.especialidad || '-'}</td>
+                        <td>{formatDisplayDate(obs.fecha_inicio)}</td>
+                        <td>{formatDisplayDate(obs.fecha_fin)}</td>
+                        <td>
+                          <span className={`status-badge ${obs.is_active ? 'status-activo' : 'status-inactivo'}`}>
+                            {obs.is_active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn-delete btn-small" onClick={() => handleEliminarAsignacion(obs.ObstetraID)}>Quitar</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state">
+                  <p>No hay obstetras asignados a este programa</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Asignar Obstetra */}
+      {showAsignarModal && (
+        <div className="modal-overlay" onClick={() => setShowAsignarModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Asignar Obstetra</h3>
+              <button className="modal-close" onClick={() => setShowAsignarModal(false)}>×</button>
+            </div>
+            <form className="modal-form" onSubmit={handleAsignarObstetra}>
+              <div className="form-group">
+                <label>Seleccionar Obstetra *</label>
+                <select 
+                  value={asignacionData.ObstetraID} 
+                  onChange={e => setAsignacionData({...asignacionData, ObstetraID: e.target.value})}
+                  required
+                >
+                  <option value="">Seleccione un obstetra...</option>
+                  {obstetrasDisponibles.map(obs => (
+                    <option key={obs.ObstetraID} value={obs.ObstetraID}>
+                      {obs.apellido}, {obs.nombre} - DNI: {obs.DNI}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Fecha de Inicio *</label>
+                  <input 
+                    type="date" 
+                    value={asignacionData.fecha_inicio} 
+                    onChange={e => setAsignacionData({...asignacionData, fecha_inicio: e.target.value})} 
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Fecha de Fin</label>
+                  <input 
+                    type="date" 
+                    value={asignacionData.fecha_fin} 
+                    onChange={e => setAsignacionData({...asignacionData, fecha_fin: e.target.value})} 
+                  />
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label className="checkbox-label">
+                  <input 
+                    type="checkbox" 
+                    checked={asignacionData.is_active} 
+                    onChange={e => setAsignacionData({...asignacionData, is_active: e.target.checked})} 
+                  />
+                  <span>Asignación Activa</span>
+                </label>
+              </div>
+              
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowAsignarModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-save">Asignar</button>
               </div>
             </form>
           </div>

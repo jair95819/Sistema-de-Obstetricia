@@ -2,82 +2,159 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import './AdminCrud.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const CrudObstetras = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [obstetras, setObstetras] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    dni: '',
-    especialidad: '',
-    telefono: '',
-    email: '',
-    estado: 'Activo'
+    NumDoc: '',
+    nro_colegiatura: '',
+    nombres: '',
+    apellidos: '',
+    titulo_profesional: '',
+    num_telefono: '',
+    fecha_nacimiento: ''
   });
 
-  useEffect(() => {
-    // Cargar datos de localStorage o usar datos de ejemplo
-    const saved = localStorage.getItem('obstetras');
-    if (saved) {
-      setObstetras(JSON.parse(saved));
-    } else {
-      const datosEjemplo = [
-        { id: 1, nombre: 'María', apellido: 'García López', dni: '12345678', especialidad: 'Obstetricia General', telefono: '987654321', email: 'maria.garcia@minsa.gob.pe', estado: 'Activo' },
-        { id: 2, nombre: 'Ana', apellido: 'Rodríguez Pérez', dni: '87654321', especialidad: 'Alto Riesgo Obstétrico', telefono: '912345678', email: 'ana.rodriguez@minsa.gob.pe', estado: 'Activo' },
-        { id: 3, nombre: 'Carmen', apellido: 'Flores Vásquez', dni: '11223344', especialidad: 'Obstetricia General', telefono: '998877665', email: 'carmen.flores@minsa.gob.pe', estado: 'Inactivo' }
-      ];
-      setObstetras(datosEjemplo);
-      localStorage.setItem('obstetras', JSON.stringify(datosEjemplo));
+  // Cargar obstetras desde la API
+  const fetchObstetras = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/obstetras`);
+      if (!response.ok) throw new Error('Error al cargar obstetras');
+      const data = await response.json();
+      setObstetras(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const saveToStorage = (data) => {
-    localStorage.setItem('obstetras', JSON.stringify(data));
   };
+
+  useEffect(() => {
+    fetchObstetras();
+  }, []);
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ nombre: '', apellido: '', dni: '', especialidad: '', telefono: '', email: '', estado: 'Activo' });
+    setFormData({
+      NumDoc: '',
+      nro_colegiatura: '',
+      nombres: '',
+      apellidos: '',
+      titulo_profesional: '',
+      num_telefono: '',
+      fecha_nacimiento: ''
+    });
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      NumDoc: item.NumDoc?.toString() || '',
+      nro_colegiatura: item.nro_colegiatura?.toString() || '',
+      nombres: item.nombres || '',
+      apellidos: item.apellidos || '',
+      titulo_profesional: item.titulo_profesional || '',
+      num_telefono: item.num_telefono?.toString() || '',
+      fecha_nacimiento: item.fecha_nacimiento ? item.fecha_nacimiento.split('T')[0] : ''
+    });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('¿Está seguro de eliminar este obstetra?')) {
-      const updated = obstetras.filter(o => o.id !== id);
-      setObstetras(updated);
-      saveToStorage(updated);
+      try {
+        const response = await fetch(`${API_URL}/obstetras/${id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error al eliminar');
+        }
+        await fetchObstetras();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      const updated = obstetras.map(o => o.id === editingItem.id ? { ...formData, id: editingItem.id } : o);
-      setObstetras(updated);
-      saveToStorage(updated);
-    } else {
-      const newItem = { ...formData, id: Date.now() };
-      const updated = [...obstetras, newItem];
-      setObstetras(updated);
-      saveToStorage(updated);
+    try {
+      const payload = {
+        NumDoc: parseInt(formData.NumDoc),
+        nro_colegiatura: parseInt(formData.nro_colegiatura),
+        nombres: formData.nombres,
+        apellidos: formData.apellidos,
+        titulo_profesional: formData.titulo_profesional,
+        num_telefono: formData.num_telefono ? parseInt(formData.num_telefono) : null,
+        fecha_nacimiento: formData.fecha_nacimiento
+      };
+
+      let response;
+      if (editingItem) {
+        response = await fetch(`${API_URL}/obstetras/${editingItem.ObstetraID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        response = await fetch(`${API_URL}/obstetras`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al guardar');
+      }
+
+      setShowModal(false);
+      await fetchObstetras();
+    } catch (err) {
+      alert(err.message);
     }
-    setShowModal(false);
+  };
+
+  const handleSearch = async () => {
+    if (searchTerm.trim()) {
+      try {
+        const response = await fetch(`${API_URL}/obstetras/search/${searchTerm}`);
+        if (response.ok) {
+          const data = await response.json();
+          setObstetras(data);
+        }
+      } catch (err) {
+        console.error('Error en búsqueda:', err);
+      }
+    } else {
+      fetchObstetras();
+    }
   };
 
   const filteredData = obstetras.filter(o => 
-    o.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.dni.includes(searchTerm)
+    o.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.NumDoc?.toString().includes(searchTerm)
   );
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-PE');
+  };
 
   return (
     <div className="admin-crud-container">
@@ -108,41 +185,54 @@ const CrudObstetras = ({ onNavigate, onBack }) => {
             placeholder="Buscar por nombre, apellido o DNI..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button className="btn-search">Buscar</button>
+          <button className="btn-search" onClick={handleSearch}>Buscar</button>
         </div>
 
+        {error && <div className="error-message">Error: {error}</div>}
+
         <div className="crud-table-container">
-          {filteredData.length > 0 ? (
+          {loading ? (
+            <div className="loading-state">
+              <p>Cargando obstetras...</p>
+            </div>
+          ) : filteredData.length > 0 ? (
             <table className="crud-table">
               <thead>
                 <tr>
                   <th>DNI</th>
                   <th>Nombre Completo</th>
-                  <th>Especialidad</th>
+                  <th>N° Colegiatura</th>
+                  <th>Título Profesional</th>
                   <th>Teléfono</th>
-                  <th>Email</th>
-                  <th>Estado</th>
+                  <th>Usuario</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredData.map(item => (
-                  <tr key={item.id}>
-                    <td>{item.dni}</td>
-                    <td>{item.nombre} {item.apellido}</td>
-                    <td>{item.especialidad}</td>
-                    <td>{item.telefono}</td>
-                    <td>{item.email}</td>
+                  <tr key={item.ObstetraID}>
+                    <td>{item.NumDoc}</td>
+                    <td>{item.nombres} {item.apellidos}</td>
+                    <td>{item.nro_colegiatura}</td>
+                    <td>{item.titulo_profesional}</td>
+                    <td>{item.num_telefono || '-'}</td>
                     <td>
-                      <span className={`status-badge ${item.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
-                        {item.estado}
-                      </span>
+                      {item.tiene_usuario ? (
+                        <span className="status-badge status-activo" title={`Email: ${item.usuario_email}`}>
+                          🔗 {item.username}
+                        </span>
+                      ) : (
+                        <span className="status-badge status-inactivo">Sin usuario</span>
+                      )}
                     </td>
                     <td>
                       <div className="crud-actions">
                         <button className="btn-edit" onClick={() => handleEdit(item)}>Editar</button>
-                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Eliminar</button>
+                        {!item.tiene_usuario && (
+                          <button className="btn-delete" onClick={() => handleDelete(item.ObstetraID)}>Eliminar</button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -166,41 +256,74 @@ const CrudObstetras = ({ onNavigate, onBack }) => {
             </div>
             <form className="modal-form" onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>DNI</label>
-                <input type="text" value={formData.dni} onChange={e => setFormData({...formData, dni: e.target.value})} required maxLength={8} />
+                <label>N° Documento (DNI)</label>
+                <input 
+                  type="number" 
+                  value={formData.NumDoc} 
+                  onChange={e => setFormData({...formData, NumDoc: e.target.value})} 
+                  required 
+                />
               </div>
               <div className="form-group">
-                <label>Nombre</label>
-                <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} required />
+                <label>N° Colegiatura</label>
+                <input 
+                  type="number" 
+                  value={formData.nro_colegiatura} 
+                  onChange={e => setFormData({...formData, nro_colegiatura: e.target.value})} 
+                  required 
+                />
               </div>
               <div className="form-group">
-                <label>Apellido</label>
-                <input type="text" value={formData.apellido} onChange={e => setFormData({...formData, apellido: e.target.value})} required />
+                <label>Nombres</label>
+                <input 
+                  type="text" 
+                  value={formData.nombres} 
+                  onChange={e => setFormData({...formData, nombres: e.target.value})} 
+                  required 
+                  maxLength={50}
+                />
               </div>
               <div className="form-group">
-                <label>Especialidad</label>
-                <select value={formData.especialidad} onChange={e => setFormData({...formData, especialidad: e.target.value})} required>
+                <label>Apellidos</label>
+                <input 
+                  type="text" 
+                  value={formData.apellidos} 
+                  onChange={e => setFormData({...formData, apellidos: e.target.value})} 
+                  required 
+                  maxLength={75}
+                />
+              </div>
+              <div className="form-group">
+                <label>Título Profesional</label>
+                <select 
+                  value={formData.titulo_profesional} 
+                  onChange={e => setFormData({...formData, titulo_profesional: e.target.value})} 
+                  required
+                >
                   <option value="">Seleccione...</option>
-                  <option value="Obstetricia General">Obstetricia General</option>
-                  <option value="Alto Riesgo Obstétrico">Alto Riesgo Obstétrico</option>
-                  <option value="Salud Reproductiva">Salud Reproductiva</option>
-                  <option value="Educación Prenatal">Educación Prenatal</option>
+                  <option value="Licenciada en Obstetricia">Licenciada en Obstetricia</option>
+                  <option value="Licenciado en Obstetricia">Licenciado en Obstetricia</option>
+                  <option value="Magister en Obstetricia">Magister en Obstetricia</option>
+                  <option value="Especialista en Alto Riesgo Obstétrico">Especialista en Alto Riesgo Obstétrico</option>
+                  <option value="Especialista en Salud Reproductiva">Especialista en Salud Reproductiva</option>
                 </select>
               </div>
               <div className="form-group">
                 <label>Teléfono</label>
-                <input type="tel" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} required maxLength={9} />
+                <input 
+                  type="number" 
+                  value={formData.num_telefono} 
+                  onChange={e => setFormData({...formData, num_telefono: e.target.value})} 
+                />
               </div>
               <div className="form-group">
-                <label>Email</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
-              </div>
-              <div className="form-group">
-                <label>Estado</label>
-                <select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})}>
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
+                <label>Fecha de Nacimiento</label>
+                <input 
+                  type="date" 
+                  value={formData.fecha_nacimiento} 
+                  onChange={e => setFormData({...formData, fecha_nacimiento: e.target.value})} 
+                  required 
+                />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>

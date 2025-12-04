@@ -2,87 +2,140 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import './AdminCrud.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const CrudMetas = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [metas, setMetas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
     categoria: '',
-    valorObjetivo: '',
-    valorActual: '',
-    unidadMedida: '',
-    fechaInicio: '',
-    fechaFin: '',
+    valor_objetivo: '',
+    valor_actual: '',
+    unidad_medida: '',
+    fecha_inicio: '',
+    fecha_fin: '',
     responsable: '',
     estado: 'En Progreso'
   });
 
-  useEffect(() => {
-    const saved = localStorage.getItem('metas');
-    if (saved) {
-      setMetas(JSON.parse(saved));
-    } else {
-      const datosEjemplo = [
-        { id: 1, nombre: 'Control Prenatal', descripcion: 'Alcanzar 100 controles prenatales mensuales', categoria: 'Atención Prenatal', valorObjetivo: 100, valorActual: 75, unidadMedida: 'Controles', fechaInicio: '2025-01-01', fechaFin: '2025-12-31', responsable: 'Dra. María García', estado: 'En Progreso' },
-        { id: 2, nombre: 'Partos Atendidos', descripcion: 'Atender 50 partos mensuales', categoria: 'Atención del Parto', valorObjetivo: 50, valorActual: 42, unidadMedida: 'Partos', fechaInicio: '2025-01-01', fechaFin: '2025-12-31', responsable: 'Dra. Ana López', estado: 'En Progreso' },
-        { id: 3, nombre: 'Vacunación Gestantes', descripcion: 'Vacunar al 95% de gestantes', categoria: 'Inmunización', valorObjetivo: 95, valorActual: 98, unidadMedida: '%', fechaInicio: '2025-01-01', fechaFin: '2025-06-30', responsable: 'Dra. María García', estado: 'Completado' }
-      ];
-      setMetas(datosEjemplo);
-      localStorage.setItem('metas', JSON.stringify(datosEjemplo));
+  const fetchMetas = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/metas`);
+      if (!response.ok) throw new Error('Error al cargar metas');
+      const data = await response.json();
+      setMetas(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const saveToStorage = (data) => {
-    localStorage.setItem('metas', JSON.stringify(data));
   };
+
+  useEffect(() => {
+    fetchMetas();
+  }, []);
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ nombre: '', descripcion: '', categoria: '', valorObjetivo: '', valorActual: '', unidadMedida: '', fechaInicio: '', fechaFin: '', responsable: '', estado: 'En Progreso' });
+    setFormData({ nombre: '', descripcion: '', categoria: '', valor_objetivo: '', valor_actual: '', unidad_medida: '', fecha_inicio: '', fecha_fin: '', responsable: '', estado: 'En Progreso' });
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      nombre: item.nombre || '',
+      descripcion: item.descripcion || '',
+      categoria: item.categoria || '',
+      valor_objetivo: item.valor_objetivo || '',
+      valor_actual: item.valor_actual || '',
+      unidad_medida: item.unidad_medida || '',
+      fecha_inicio: item.fecha_inicio ? item.fecha_inicio.split('T')[0] : '',
+      fecha_fin: item.fecha_fin ? item.fecha_fin.split('T')[0] : '',
+      responsable: item.responsable || '',
+      estado: item.estado || 'En Progreso'
+    });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('¿Está seguro de eliminar esta meta?')) {
-      const updated = metas.filter(m => m.id !== id);
-      setMetas(updated);
-      saveToStorage(updated);
+      try {
+        const response = await fetch(`${API_URL}/metas/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error al eliminar');
+        }
+        await fetchMetas();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      const updated = metas.map(m => m.id === editingItem.id ? { ...formData, id: editingItem.id } : m);
-      setMetas(updated);
-      saveToStorage(updated);
-    } else {
-      const newItem = { ...formData, id: Date.now() };
-      const updated = [...metas, newItem];
-      setMetas(updated);
-      saveToStorage(updated);
+    try {
+      const payload = { ...formData };
+      let response;
+      if (editingItem) {
+        response = await fetch(`${API_URL}/metas/${editingItem.MetaID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        response = await fetch(`${API_URL}/metas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al guardar');
+      }
+      setShowModal(false);
+      await fetchMetas();
+    } catch (err) {
+      alert(err.message);
     }
-    setShowModal(false);
+  };
+
+  const handleSearch = async () => {
+    if (searchTerm.trim()) {
+      try {
+        const response = await fetch(`${API_URL}/metas/search/${searchTerm}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMetas(data);
+        }
+      } catch (err) {
+        console.error('Error en búsqueda:', err);
+      }
+    } else {
+      fetchMetas();
+    }
   };
 
   const calcularProgreso = (valorActual, valorObjetivo) => {
+    if (!valorObjetivo) return 0;
     return Math.round((valorActual / valorObjetivo) * 100);
   };
 
   const filteredData = metas.filter(m => 
-    m.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.responsable.toLowerCase().includes(searchTerm.toLowerCase())
+    m.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.responsable?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -114,12 +167,17 @@ const CrudMetas = ({ onNavigate, onBack }) => {
             placeholder="Buscar por nombre, categoría o responsable..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button className="btn-search">Buscar</button>
+          <button className="btn-search" onClick={handleSearch}>Buscar</button>
         </div>
 
+        {error && <div className="error-message">Error: {error}</div>}
+
         <div className="crud-table-container">
-          {filteredData.length > 0 ? (
+          {loading ? (
+            <div className="loading-state"><p>Cargando metas...</p></div>
+          ) : filteredData.length > 0 ? (
             <table className="crud-table">
               <thead>
                 <tr>
@@ -134,7 +192,7 @@ const CrudMetas = ({ onNavigate, onBack }) => {
               </thead>
               <tbody>
                 {filteredData.map(item => (
-                  <tr key={item.id}>
+                  <tr key={item.MetaID}>
                     <td>
                       <div className="meta-info">
                         <strong>{item.nombre}</strong>
@@ -148,15 +206,15 @@ const CrudMetas = ({ onNavigate, onBack }) => {
                           <div 
                             className="progress-fill" 
                             style={{ 
-                              width: `${Math.min(calcularProgreso(item.valorActual, item.valorObjetivo), 100)}%`,
-                              backgroundColor: calcularProgreso(item.valorActual, item.valorObjetivo) >= 100 ? '#28a745' : '#667eea'
+                              width: `${Math.min(calcularProgreso(item.valor_actual, item.valor_objetivo), 100)}%`,
+                              backgroundColor: calcularProgreso(item.valor_actual, item.valor_objetivo) >= 100 ? '#28a745' : '#667eea'
                             }}
                           ></div>
                         </div>
-                        <span className="progress-text">{item.valorActual}/{item.valorObjetivo} {item.unidadMedida}</span>
+                        <span className="progress-text">{item.valor_actual}/{item.valor_objetivo} {item.unidad_medida}</span>
                       </div>
                     </td>
-                    <td>{new Date(item.fechaFin).toLocaleDateString('es-PE')}</td>
+                    <td>{item.fecha_fin ? new Date(item.fecha_fin).toLocaleDateString('es-PE') : '-'}</td>
                     <td>{item.responsable}</td>
                     <td>
                       <span className={`status-badge ${item.estado === 'Completado' ? 'status-activo' : item.estado === 'En Progreso' ? 'status-progreso' : 'status-inactivo'}`}>
@@ -166,7 +224,7 @@ const CrudMetas = ({ onNavigate, onBack }) => {
                     <td>
                       <div className="crud-actions">
                         <button className="btn-edit" onClick={() => handleEdit(item)}>Editar</button>
-                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Eliminar</button>
+                        <button className="btn-delete" onClick={() => handleDelete(item.MetaID)}>Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -191,11 +249,11 @@ const CrudMetas = ({ onNavigate, onBack }) => {
             <form className="modal-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Nombre de la Meta</label>
-                <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} required />
+                <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} required maxLength={100} />
               </div>
               <div className="form-group">
                 <label>Descripción</label>
-                <textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} required rows={3}></textarea>
+                <textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} rows={3} maxLength={255}></textarea>
               </div>
               <div className="form-group">
                 <label>Categoría</label>
@@ -212,30 +270,30 @@ const CrudMetas = ({ onNavigate, onBack }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Valor Objetivo</label>
-                  <input type="number" value={formData.valorObjetivo} onChange={e => setFormData({...formData, valorObjetivo: parseInt(e.target.value)})} required />
+                  <input type="number" value={formData.valor_objetivo} onChange={e => setFormData({...formData, valor_objetivo: e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label>Valor Actual</label>
-                  <input type="number" value={formData.valorActual} onChange={e => setFormData({...formData, valorActual: parseInt(e.target.value)})} required />
+                  <input type="number" value={formData.valor_actual} onChange={e => setFormData({...formData, valor_actual: e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label>Unidad de Medida</label>
-                  <input type="text" value={formData.unidadMedida} onChange={e => setFormData({...formData, unidadMedida: e.target.value})} placeholder="Ej: Controles, %, Pacientes" required />
+                  <input type="text" value={formData.unidad_medida} onChange={e => setFormData({...formData, unidad_medida: e.target.value})} placeholder="Ej: Controles, %, Pacientes" required maxLength={30} />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Fecha Inicio</label>
-                  <input type="date" value={formData.fechaInicio} onChange={e => setFormData({...formData, fechaInicio: e.target.value})} required />
+                  <input type="date" value={formData.fecha_inicio} onChange={e => setFormData({...formData, fecha_inicio: e.target.value})} required />
                 </div>
                 <div className="form-group">
                   <label>Fecha Fin</label>
-                  <input type="date" value={formData.fechaFin} onChange={e => setFormData({...formData, fechaFin: e.target.value})} required />
+                  <input type="date" value={formData.fecha_fin} onChange={e => setFormData({...formData, fecha_fin: e.target.value})} required />
                 </div>
               </div>
               <div className="form-group">
                 <label>Responsable</label>
-                <input type="text" value={formData.responsable} onChange={e => setFormData({...formData, responsable: e.target.value})} required />
+                <input type="text" value={formData.responsable} onChange={e => setFormData({...formData, responsable: e.target.value})} required maxLength={100} />
               </div>
               <div className="form-group">
                 <label>Estado</label>

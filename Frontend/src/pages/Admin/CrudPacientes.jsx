@@ -2,79 +2,129 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import './AdminCrud.css';
 
+const API_URL = 'http://localhost:4000/api';
+
 const CrudPacientes = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [pacientes, setPacientes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    dni: '',
-    fechaNacimiento: '',
+    NumDoc: '',
+    nombres: '',
+    apellidos: '',
+    fecha_nacimiento: '',
     telefono: '',
-    email: '',
     direccion: '',
-    tipoSeguro: '',
+    tipo_seguro: '',
     estado: 'Activo'
   });
 
-  useEffect(() => {
-    const saved = localStorage.getItem('pacientes');
-    if (saved) {
-      setPacientes(JSON.parse(saved));
-    } else {
-      const datosEjemplo = [
-        { id: 1, nombre: 'Sofía', apellido: 'Ramírez Torres', dni: '73822138', fechaNacimiento: '1995-03-15', telefono: '912345678', email: 'sofia@email.com', direccion: 'Av. Los Olivos 123', tipoSeguro: 'SIS', estado: 'Activo' },
-        { id: 2, nombre: 'Valeria', apellido: 'Castro Flores', dni: '73370017', fechaNacimiento: '1992-08-22', telefono: '912345679', email: 'valeria@email.com', direccion: 'Jr. Las Flores 456', tipoSeguro: 'EsSalud', estado: 'Activo' },
-        { id: 3, nombre: 'Lucía', apellido: 'Mendoza Silva', dni: '45678912', fechaNacimiento: '1998-11-10', telefono: '998877665', email: 'lucia@email.com', direccion: 'Calle Los Pinos 789', tipoSeguro: 'Particular', estado: 'Activo' }
-      ];
-      setPacientes(datosEjemplo);
-      localStorage.setItem('pacientes', JSON.stringify(datosEjemplo));
+  const fetchPacientes = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/pacientes`);
+      if (!response.ok) throw new Error('Error al cargar pacientes');
+      const data = await response.json();
+      setPacientes(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const saveToStorage = (data) => {
-    localStorage.setItem('pacientes', JSON.stringify(data));
   };
+
+  useEffect(() => {
+    fetchPacientes();
+  }, []);
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ nombre: '', apellido: '', dni: '', fechaNacimiento: '', telefono: '', email: '', direccion: '', tipoSeguro: '', estado: 'Activo' });
+    setFormData({ NumDoc: '', nombres: '', apellidos: '', fecha_nacimiento: '', telefono: '', direccion: '', tipo_seguro: '', estado: 'Activo' });
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      NumDoc: item.NumDoc || '',
+      nombres: item.nombres || '',
+      apellidos: item.apellidos || '',
+      fecha_nacimiento: item.fecha_nacimiento ? item.fecha_nacimiento.split('T')[0] : '',
+      telefono: item.telefono || '',
+      direccion: item.direccion || '',
+      tipo_seguro: item.tipo_seguro || '',
+      estado: item.estado || 'Activo'
+    });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('¿Está seguro de eliminar este paciente?')) {
-      const updated = pacientes.filter(p => p.id !== id);
-      setPacientes(updated);
-      saveToStorage(updated);
+      try {
+        const response = await fetch(`${API_URL}/pacientes/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error al eliminar');
+        }
+        await fetchPacientes();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      const updated = pacientes.map(p => p.id === editingItem.id ? { ...formData, id: editingItem.id } : p);
-      setPacientes(updated);
-      saveToStorage(updated);
-    } else {
-      const newItem = { ...formData, id: Date.now() };
-      const updated = [...pacientes, newItem];
-      setPacientes(updated);
-      saveToStorage(updated);
+    try {
+      const payload = { ...formData };
+      let response;
+      if (editingItem) {
+        response = await fetch(`${API_URL}/pacientes/${editingItem.PacienteID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        response = await fetch(`${API_URL}/pacientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error al guardar');
+      }
+      setShowModal(false);
+      await fetchPacientes();
+    } catch (err) {
+      alert(err.message);
     }
-    setShowModal(false);
+  };
+
+  const handleSearch = async () => {
+    if (searchTerm.trim()) {
+      try {
+        const response = await fetch(`${API_URL}/pacientes/search/${searchTerm}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPacientes(data);
+        }
+      } catch (err) {
+        console.error('Error en búsqueda:', err);
+      }
+    } else {
+      fetchPacientes();
+    }
   };
 
   const calcularEdad = (fechaNacimiento) => {
+    if (!fechaNacimiento) return '-';
     const hoy = new Date();
     const nacimiento = new Date(fechaNacimiento);
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
@@ -86,9 +136,9 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
   };
 
   const filteredData = pacientes.filter(p => 
-    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.dni.includes(searchTerm)
+    p.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.NumDoc?.includes(searchTerm)
   );
 
   return (
@@ -120,12 +170,17 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
             placeholder="Buscar por nombre, apellido o DNI..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <button className="btn-search">Buscar</button>
+          <button className="btn-search" onClick={handleSearch}>Buscar</button>
         </div>
 
+        {error && <div className="error-message">Error: {error}</div>}
+
         <div className="crud-table-container">
-          {filteredData.length > 0 ? (
+          {loading ? (
+            <div className="loading-state"><p>Cargando pacientes...</p></div>
+          ) : filteredData.length > 0 ? (
             <table className="crud-table">
               <thead>
                 <tr>
@@ -140,12 +195,12 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
               </thead>
               <tbody>
                 {filteredData.map(item => (
-                  <tr key={item.id}>
-                    <td>{item.dni}</td>
-                    <td>{item.nombre} {item.apellido}</td>
-                    <td>{calcularEdad(item.fechaNacimiento)} años</td>
-                    <td>{item.telefono}</td>
-                    <td>{item.tipoSeguro}</td>
+                  <tr key={item.PacienteID}>
+                    <td>{item.NumDoc}</td>
+                    <td>{item.nombres} {item.apellidos}</td>
+                    <td>{calcularEdad(item.fecha_nacimiento)} años</td>
+                    <td>{item.telefono || '-'}</td>
+                    <td>{item.tipo_seguro || '-'}</td>
                     <td>
                       <span className={`status-badge ${item.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
                         {item.estado}
@@ -154,7 +209,7 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
                     <td>
                       <div className="crud-actions">
                         <button className="btn-edit" onClick={() => handleEdit(item)}>Editar</button>
-                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Eliminar</button>
+                        <button className="btn-delete" onClick={() => handleDelete(item.PacienteID)}>Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -179,35 +234,31 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
             <form className="modal-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>DNI</label>
-                <input type="text" value={formData.dni} onChange={e => setFormData({...formData, dni: e.target.value})} required maxLength={8} />
+                <input type="text" value={formData.NumDoc} onChange={e => setFormData({...formData, NumDoc: e.target.value})} required maxLength={8} />
               </div>
               <div className="form-group">
-                <label>Nombre</label>
-                <input type="text" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} required />
+                <label>Nombres</label>
+                <input type="text" value={formData.nombres} onChange={e => setFormData({...formData, nombres: e.target.value})} required maxLength={50} />
               </div>
               <div className="form-group">
-                <label>Apellido</label>
-                <input type="text" value={formData.apellido} onChange={e => setFormData({...formData, apellido: e.target.value})} required />
+                <label>Apellidos</label>
+                <input type="text" value={formData.apellidos} onChange={e => setFormData({...formData, apellidos: e.target.value})} required maxLength={75} />
               </div>
               <div className="form-group">
                 <label>Fecha de Nacimiento</label>
-                <input type="date" value={formData.fechaNacimiento} onChange={e => setFormData({...formData, fechaNacimiento: e.target.value})} required />
+                <input type="date" value={formData.fecha_nacimiento} onChange={e => setFormData({...formData, fecha_nacimiento: e.target.value})} required />
               </div>
               <div className="form-group">
                 <label>Teléfono</label>
-                <input type="tel" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} required maxLength={9} />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                <input type="tel" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} maxLength={15} />
               </div>
               <div className="form-group">
                 <label>Dirección</label>
-                <input type="text" value={formData.direccion} onChange={e => setFormData({...formData, direccion: e.target.value})} />
+                <input type="text" value={formData.direccion} onChange={e => setFormData({...formData, direccion: e.target.value})} maxLength={150} />
               </div>
               <div className="form-group">
                 <label>Tipo de Seguro</label>
-                <select value={formData.tipoSeguro} onChange={e => setFormData({...formData, tipoSeguro: e.target.value})} required>
+                <select value={formData.tipo_seguro} onChange={e => setFormData({...formData, tipo_seguro: e.target.value})} required>
                   <option value="">Seleccione...</option>
                   <option value="SIS">SIS</option>
                   <option value="EsSalud">EsSalud</option>
