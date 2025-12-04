@@ -10,10 +10,19 @@ import { sql, connectDB } from '../config/db.js';
 // num_telefono int
 // fecha_nacimiento date
 
-// Obtener todos los obstetras
+// Obtener todos los obstetras con información de usuario vinculado
 export async function getAllObstetras() {
   await connectDB();
-  const result = await sql.query`SELECT * FROM Obstetra ORDER BY apellidos, nombres`;
+  const result = await sql.query`
+    SELECT o.*, 
+           u.UsuarioID, 
+           u.username, 
+           u.email as usuario_email,
+           CASE WHEN u.UsuarioID IS NOT NULL THEN 1 ELSE 0 END as tiene_usuario
+    FROM Obstetra o
+    LEFT JOIN Usuario u ON o.NumDoc = u.NumDoc
+    ORDER BY o.apellidos, o.nombres
+  `;
   return result.recordset;
 }
 
