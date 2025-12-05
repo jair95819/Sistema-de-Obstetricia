@@ -78,6 +78,32 @@
   margin-bottom: 40px;
 }
 
+.profile-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-button {
+  background: transparent;
+  border: 2px solid #6B0000;
+  color: #6B0000;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background-color: #6B0000;
+  color: white;
+}
+
 .profile-page-title {
   font-size: 2rem;
   font-weight: 700;

@@ -11,7 +11,7 @@ import Atenciones from './pages/Atenciones/Atenciones'
 import RegistrarAtenciones from './pages/Atenciones/RegistrarAtenciones'
 import VisualizarAtenciones from './pages/Atenciones/VisualizarAtenciones'
 import RegistroReprogramacion from './pages/Atenciones/RegistroReprogramacion'
-import GenerarReferencia from './pages/Atenciones/GenerarReferencia'
+import DetalleAtencion from './pages/Atenciones/DetalleAtencion'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import CrudObstetras from './pages/Admin/CrudObstetras'
 import CrudPacientes from './pages/Admin/CrudPacientes'
@@ -24,6 +24,7 @@ import PasswordChange from './pages/Login/PasswordChange'
 function App() {
   const [history, setHistory] = useState(['login'])
   const [loading, setLoading] = useState(true)
+  const [pageParams, setPageParams] = useState({}) // Parámetros de navegación
   const currentPage = history[history.length - 1]
 
   // Verificar sesión al cargar la app
@@ -45,6 +46,7 @@ function App() {
         if (response.ok) {
           // Sesión válida, ir al dashboard
           setHistory(['dashboard']);
+          window.history.replaceState({ page: 'dashboard' }, '', '');
         } else {
           // Token inválido, limpiar y quedarse en login
           localStorage.removeItem('token');
@@ -63,14 +65,16 @@ function App() {
   }, []);
 
   // Navega a una nueva página (adelante)
-  const handleNavigate = (page) => {
+  const handleNavigate = (page, params = {}) => {
+    setPageParams(params);
     setHistory(prev => [...prev, page])
   }
 
   // Vuelve a la página anterior (atrás)
   const handleBack = () => {
     if (history.length > 1) {
-      setHistory(prev => prev.slice(0, -1))
+      setHistory(prev => prev.slice(0, -1));
+      setPageParams({});
     }
   }
 
@@ -141,8 +145,8 @@ function App() {
       {currentPage === 'registro-reprogramacion' && (
         <RegistroReprogramacion onNavigate={handleNavigate} onBack={handleBack} />
       )}
-      {currentPage === 'generar-referencia' && (
-        <GenerarReferencia onNavigate={handleNavigate} onBack={handleBack} />
+      {currentPage === 'detalle-atencion-view' && (
+        <DetalleAtencion onNavigate={handleNavigate} onBack={handleBack} atencionId={pageParams.atencionId} />
       )}
       {currentPage === 'admin-dashboard' && (
         <AdminDashboard onNavigate={handleNavigate} onBack={handleBack} />

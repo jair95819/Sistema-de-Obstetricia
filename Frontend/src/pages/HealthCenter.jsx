@@ -2,17 +2,11 @@ import { useState } from 'react';
 import Sidebar from '../components/Sidebar/Sidebar';
 import './HealthCenter.css';
 
-const HealthCenter = ({ onNavigate }) => {
+const HealthCenter = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-  };
-
-  const handleBackToProfile = () => {
-    if (onNavigate) {
-      onNavigate('profile');
-    }
   };
 
   const healthCenterInfo = {
@@ -57,8 +51,8 @@ const HealthCenter = ({ onNavigate }) => {
       <main className="health-center-main">
         <div className="health-center-content">
           {/* Back Button */}
-          <button className="back-button" onClick={handleBackToProfile}>
-            ← Volver a Mi Perfil
+          <button className="back-btn-small" onClick={onBack}>
+            ←
           </button>
 
           {/* Hospital Icon */}

@@ -13,14 +13,17 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    NumDoc: '',
+    nro_documento: '',
     nombres: '',
     apellidos: '',
     fecha_nacimiento: '',
-    telefono: '',
+    nacionalidad: 'Peruana',
     direccion: '',
-    tipo_seguro: '',
-    estado: 'Activo'
+    telefono: '',
+    email: '',
+    tipo_sangre: '',
+    tiene_sis: true,
+    is_active: true
   });
 
   const fetchPacientes = async () => {
@@ -44,21 +47,24 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({ NumDoc: '', nombres: '', apellidos: '', fecha_nacimiento: '', telefono: '', direccion: '', tipo_seguro: '', estado: 'Activo' });
+    setFormData({ nro_documento: '', nombres: '', apellidos: '', fecha_nacimiento: '', nacionalidad: 'Peruana', direccion: '', telefono: '', email: '', tipo_sangre: '', tiene_sis: true, is_active: true });
     setShowModal(true);
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
     setFormData({
-      NumDoc: item.NumDoc || '',
+      nro_documento: item.nro_documento || '',
       nombres: item.nombres || '',
       apellidos: item.apellidos || '',
       fecha_nacimiento: item.fecha_nacimiento ? item.fecha_nacimiento.split('T')[0] : '',
-      telefono: item.telefono || '',
+      nacionalidad: item.nacionalidad || 'Peruana',
       direccion: item.direccion || '',
-      tipo_seguro: item.tipo_seguro || '',
-      estado: item.estado || 'Activo'
+      telefono: item.telefono || '',
+      email: item.email || '',
+      tipo_sangre: item.tipo_sangre || '',
+      tiene_sis: item.tiene_sis ?? true,
+      is_active: item.is_active ?? true
     });
     setShowModal(true);
   };
@@ -138,7 +144,7 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
   const filteredData = pacientes.filter(p => 
     p.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.NumDoc?.includes(searchTerm)
+    String(p.nro_documento)?.includes(searchTerm)
   );
 
   return (
@@ -188,7 +194,7 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
                   <th>Nombre Completo</th>
                   <th>Edad</th>
                   <th>Teléfono</th>
-                  <th>Tipo Seguro</th>
+                  <th>Tiene SIS</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -196,14 +202,14 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
               <tbody>
                 {filteredData.map(item => (
                   <tr key={item.PacienteID}>
-                    <td>{item.NumDoc}</td>
+                    <td>{item.nro_documento}</td>
                     <td>{item.nombres} {item.apellidos}</td>
                     <td>{calcularEdad(item.fecha_nacimiento)} años</td>
                     <td>{item.telefono || '-'}</td>
-                    <td>{item.tipo_seguro || '-'}</td>
+                    <td>{item.tiene_sis ? 'Sí' : 'No'}</td>
                     <td>
-                      <span className={`status-badge ${item.estado === 'Activo' ? 'status-activo' : 'status-inactivo'}`}>
-                        {item.estado}
+                      <span className={`status-badge ${item.is_active ? 'status-activo' : 'status-inactivo'}`}>
+                        {item.is_active ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td>
@@ -233,8 +239,8 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
             </div>
             <form className="modal-form" onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>DNI</label>
-                <input type="text" value={formData.NumDoc} onChange={e => setFormData({...formData, NumDoc: e.target.value})} required maxLength={8} />
+                <label>Nro. Documento (DNI)</label>
+                <input type="number" value={formData.nro_documento} onChange={e => setFormData({...formData, nro_documento: parseInt(e.target.value) || ''})} required />
               </div>
               <div className="form-group">
                 <label>Nombres</label>
@@ -246,31 +252,50 @@ const CrudPacientes = ({ onNavigate, onBack }) => {
               </div>
               <div className="form-group">
                 <label>Fecha de Nacimiento</label>
-                <input type="date" value={formData.fecha_nacimiento} onChange={e => setFormData({...formData, fecha_nacimiento: e.target.value})} required />
+                <input type="date" value={formData.fecha_nacimiento} onChange={e => setFormData({...formData, fecha_nacimiento: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Teléfono</label>
-                <input type="tel" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} maxLength={15} />
+                <label>Nacionalidad</label>
+                <input type="text" value={formData.nacionalidad} onChange={e => setFormData({...formData, nacionalidad: e.target.value})} maxLength={50} />
               </div>
               <div className="form-group">
                 <label>Dirección</label>
-                <input type="text" value={formData.direccion} onChange={e => setFormData({...formData, direccion: e.target.value})} maxLength={150} />
+                <input type="text" value={formData.direccion} onChange={e => setFormData({...formData, direccion: e.target.value})} maxLength={50} />
               </div>
               <div className="form-group">
-                <label>Tipo de Seguro</label>
-                <select value={formData.tipo_seguro} onChange={e => setFormData({...formData, tipo_seguro: e.target.value})} required>
+                <label>Teléfono</label>
+                <input type="number" value={formData.telefono} onChange={e => setFormData({...formData, telefono: parseInt(e.target.value) || ''})} />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} maxLength={50} />
+              </div>
+              <div className="form-group">
+                <label>Tipo de Sangre</label>
+                <select value={formData.tipo_sangre} onChange={e => setFormData({...formData, tipo_sangre: e.target.value})}>
                   <option value="">Seleccione...</option>
-                  <option value="SIS">SIS</option>
-                  <option value="EsSalud">EsSalud</option>
-                  <option value="Particular">Particular</option>
-                  <option value="EPS">EPS</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>¿Tiene SIS?</label>
+                <select value={formData.tiene_sis ? 'true' : 'false'} onChange={e => setFormData({...formData, tiene_sis: e.target.value === 'true'})}>
+                  <option value="true">Sí</option>
+                  <option value="false">No</option>
                 </select>
               </div>
               <div className="form-group">
                 <label>Estado</label>
-                <select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})}>
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
+                <select value={formData.is_active ? 'true' : 'false'} onChange={e => setFormData({...formData, is_active: e.target.value === 'true'})}>
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
                 </select>
               </div>
               <div className="modal-actions">

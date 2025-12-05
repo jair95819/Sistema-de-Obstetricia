@@ -20,6 +20,18 @@ const GenerarReferencia = ({ onNavigate, onBack }) => {
     setMenuOpen(!menuOpen);
   };
 
+  // Función para formatear fecha sin problemas de timezone
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    // Si la fecha viene en formato YYYY-MM-DD, parseamos directamente
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    }
+    return dateString;
+  };
+
   useEffect(() => {
     // Cargar datos de la atención desde localStorage
     const datos = localStorage.getItem('datosReferencia');
@@ -216,7 +228,7 @@ Firma: ________________
               <h4>DATOS DE LA ATENCIÓN</h4>
               <div className="datos-grid">
                 <div><strong>N° Atención:</strong> {datosReferencia.id}</div>
-                <div><strong>Fecha:</strong> {new Date(datosReferencia.fechaRealizacion).toLocaleDateString('es-PE')}</div>
+                <div><strong>Fecha:</strong> {formatDate(datosReferencia.fechaRealizacion)}</div>
                 <div><strong>Programa:</strong> {datosReferencia.tipoAtencion}</div>
                 <div><strong>Razón de Consulta:</strong> {datosReferencia.razonConsulta}</div>
               </div>

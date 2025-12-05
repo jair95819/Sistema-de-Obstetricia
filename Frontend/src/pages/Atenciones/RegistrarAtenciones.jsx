@@ -4,6 +4,7 @@ import './RegistrarAtenciones.css';
 
 const RegistrarAtenciones = ({ onNavigate, onBack, onNext }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pacienteEncontrado, setPacienteEncontrado] = useState(null); // Guardar datos del paciente encontrado
   const [formData, setFormData] = useState({
     // Datos del Paciente
     nroDocumento: '',
@@ -32,93 +33,109 @@ const RegistrarAtenciones = ({ onNavigate, onBack, onNext }) => {
     }));
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const dni = formData.nroDocumento;
     console.log('Buscar paciente:', dni);
     
-    // Base de datos simulada de pacientes
-    const pacientesDB = {
-      '73822138': {
-        nombreCompleto: 'Sofía Ramírez Torres',
-        correoElectronico: 'sofia@upn.pe',
-        numeroTelefono: '912345678'
-      },
-      '73370017': {
-        nombreCompleto: 'Valeria Castro Flores',
-        correoElectronico: 'valeria@upn.pe',
-        numeroTelefono: '912345679'
-      }
-    };
+    if (!dni || dni.trim() === '') {
+      alert('Por favor ingrese un número de documento');
+      return;
+    }
 
-    // Buscar paciente por DNI
-    const paciente = pacientesDB[dni];
-    
-    if (paciente) {
-      // Autocompletar campos si se encuentra el paciente
-      setFormData(prev => ({
-        ...prev,
-        nombreCompleto: paciente.nombreCompleto,
-        correoElectronico: paciente.correoElectronico,
-        numeroTelefono: paciente.numeroTelefono
-      }));
-      console.log('Paciente encontrado:', paciente);
-    } else {
-      alert('No se encontró un paciente con ese número de documento');
-      // Limpiar campos si no se encuentra
-      setFormData(prev => ({
-        ...prev,
-        nombreCompleto: '',
-        correoElectronico: '',
-        numeroTelefono: ''
-      }));
+    try {
+      // Buscar paciente por DNI en la API real
+      const response = await fetch(`http://localhost:4000/api/pacientes/search/${dni}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al buscar paciente');
+      }
+      
+      const pacientes = await response.json();
+      
+      // Buscar coincidencia exacta por nro_documento
+      const paciente = pacientes.find(p => String(p.nro_documento) === dni);
+      
+      if (paciente) {
+        // Guardar el paciente encontrado (incluye PacienteID)
+        setPacienteEncontrado(paciente);
+        // Autocompletar campos si se encuentra el paciente
+        setFormData(prev => ({
+          ...prev,
+          nombreCompleto: `${paciente.nombres || ''} ${paciente.apellidos || ''}`.trim(),
+          correoElectronico: paciente.email || '',
+          numeroTelefono: paciente.telefono ? String(paciente.telefono) : '',
+          tieneSeguro: paciente.tiene_sis ? 'Si' : 'No'
+        }));
+        console.log('Paciente encontrado:', paciente);
+      } else {
+        alert('No se encontró un paciente con ese número de documento');
+        setPacienteEncontrado(null);
+        // Limpiar campos si no se encuentra
+        setFormData(prev => ({
+          ...prev,
+          nombreCompleto: '',
+          correoElectronico: '',
+          numeroTelefono: ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error buscando paciente:', error);
+      alert('Error al buscar paciente: ' + error.message);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Registrar atención:', formData);
     
-    // Generar ID único para la atención
-    const atencionId = 'AT-' + String(Date.now()).slice(-6);
+    // Validar que se haya encontrado un paciente
+    if (!pacienteEncontrado) {
+      alert('Debe buscar y seleccionar un paciente primero');
+      return;
+    }
     
-    // Crear objeto de atención
-    const nuevaAtencion = {
-      id: atencionId,
-      dniPaciente: formData.nroDocumento,
-      nombrePaciente: formData.nombreCompleto,
-      fechaRealizacion: formData.fechaAtencion,
-      horaAtencion: formData.horaAtencion,
-      tipoAtencion: formData.programaObstetra,
-      estado: 'Completada',
-      seReprogramo: 'No',
-      razonConsulta: formData.razonConsulta,
-      tieneSeguro: formData.tieneSeguro,
-      apuntesMedico: formData.apuntesMedico,
-      requiereReferencia: formData.requiereReferencia,
-      correoElectronico: formData.correoElectronico,
-      numeroTelefono: formData.numeroTelefono
+    // Obtener ObstetraID del usuario logueado
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const obstetraId = user.obstetraId || 1; // Default a 1 si no hay
+    
+    // Mapear programa a ProgramaDeAtencionID
+    const programaMap = {
+      'Consejerias': 1,
+      'PAP': 2,
+      'IVAA': 3,
+      'Examen Clinico': 4,
+      'VPH': 5
     };
+    const programaId = programaMap[formData.programaObstetra] || 1;
     
-    // Obtener atenciones existentes del localStorage
-    const atencionesGuardadas = localStorage.getItem('atenciones');
-    const atenciones = atencionesGuardadas ? JSON.parse(atencionesGuardadas) : [];
-    
-    // Agregar la nueva atención
-    atenciones.push(nuevaAtencion);
-    
-    // Guardar en localStorage
-    localStorage.setItem('atenciones', JSON.stringify(atenciones));
-    
-    // Mostrar mensaje de éxito
-    alert(`✅ Atención registrada exitosamente\nN° de Atención: ${atencionId}`);
-    
-    // Si requiere referencia, redireccionar a Generar Referencia
-    if (formData.requiereReferencia === 'Si') {
-      // Guardar datos para la referencia en localStorage temporalmente
-      localStorage.setItem('datosReferencia', JSON.stringify(nuevaAtencion));
-      onNavigate('generar-referencia');
-    } else {
-      // Limpiar formulario si no requiere referencia
+    try {
+      // Enviar a la API
+      const response = await fetch('http://localhost:4000/api/atenciones', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ObstetraID: obstetraId,
+          PacienteID: pacienteEncontrado.PacienteID,
+          ProgramaDeAtencionID: programaId,
+          fecha_realizacion: formData.fechaAtencion,
+          estado: 'Completada',
+          observaciones: formData.apuntesMedico || formData.razonConsulta
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al registrar atención');
+      }
+      
+      const result = await response.json();
+      
+      // Mostrar mensaje de éxito
+      alert(`✅ Atención registrada exitosamente\nN° de Atención: ${result.id}`);
+      
+      // Limpiar formulario e ir a visualizar atenciones
       setFormData({
         nroDocumento: '',
         nombreCompleto: '',
@@ -132,6 +149,12 @@ const RegistrarAtenciones = ({ onNavigate, onBack, onNext }) => {
         apuntesMedico: '',
         requiereReferencia: ''
       });
+      setPacienteEncontrado(null);
+      // Ir a visualizar atenciones
+      onNavigate('visualizar-atenciones');
+    } catch (error) {
+      console.error('Error al registrar atención:', error);
+      alert('Error al registrar atención: ' + error.message);
     }
   };
 
@@ -328,31 +351,29 @@ const RegistrarAtenciones = ({ onNavigate, onBack, onNext }) => {
                 required
               >
                 <option value="">Seleccione un programa</option>
-                <option value="Programa 1">Programa 1: Control Prenatal</option>
-                <option value="Programa 2">Programa 2: Planificación Familiar</option>
-                <option value="Programa 3">Programa 3: Puerperio</option>
-                <option value="Programa 4">Programa 4: Detección de Riesgo</option>
-                <option value="Programa 5">Programa 5: Educación Materna</option>
+                <option value="Consejerias">Consejerías</option>
+                <option value="PAP">PAP</option>
+                <option value="IVAA">IVAA</option>
+                <option value="Examen Clinico">Examen Clínico</option>
+                <option value="VPH">VPH</option>
               </select>
             </div>
 
             {/* Tiene Seguro */}
             <div className="form-row">
               <label htmlFor="tieneSeguro" className="form-label">
-                ¿Tiene Seguro?
+                ¿Tiene Seguro? (SIS)
               </label>
-              <select
+              <input
+                type="text"
                 id="tieneSeguro"
                 name="tieneSeguro"
-                value={formData.tieneSeguro}
-                onChange={handleInputChange}
-                className="form-select"
-                required
-              >
-                <option value="">Seleccione una opción</option>
-                <option value="Si">Sí</option>
-                <option value="No">No</option>
-              </select>
+                value={formData.tieneSeguro === 'Si' ? 'Sí' : formData.tieneSeguro === 'No' ? 'No' : 'Busque un paciente'}
+                className="form-input"
+                readOnly
+                disabled
+                style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
+              />
             </div>
 
             {/* Apuntes del Médico */}
@@ -370,25 +391,6 @@ const RegistrarAtenciones = ({ onNavigate, onBack, onNext }) => {
                 rows="4"
                 required
               />
-            </div>
-
-            {/* Requiere Referencia */}
-            <div className="form-row">
-              <label htmlFor="requiereReferencia" className="form-label">
-                ¿Requiere Referencia?
-              </label>
-              <select
-                id="requiereReferencia"
-                name="requiereReferencia"
-                value={formData.requiereReferencia}
-                onChange={handleInputChange}
-                className="form-select"
-                required
-              >
-                <option value="">Seleccione una opción</option>
-                <option value="Si">Sí</option>
-                <option value="No">No</option>
-              </select>
             </div>
 
             {/* Submit Button */}

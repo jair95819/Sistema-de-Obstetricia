@@ -54,11 +54,44 @@
   margin: 0 auto;
 }
 
+.metas-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.back-button {
+  background: transparent !important;
+  border: 2px solid #6B0000 !important;
+  color: #6B0000 !important;
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.back-button:hover {
+  background-color: #6B0000;
+  color: white;
+}
+
 .metas-title {
   font-size: 32px;
   font-weight: 600;
   color: #4a0000;
-  margin-bottom: 40px;
+  margin: 0;
   text-align: left;
 }
 
@@ -73,36 +106,99 @@
 .programs-list {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
 }
 
 .program-item {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .program-label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #2c2c2c;
-  margin-bottom: 4px;
+  min-width: 120px;
+  text-align: right;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
 }
 
 .progress-bar-container {
-  width: 100%;
-  height: 32px;
-  background-color: #d4d4d4;
-  border-radius: 16px;
+  flex: 1;
+  height: 24px;
+  background-color: #e0e0e0;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #a8a8a8 0%, #8c8c8c 100%);
-  border-radius: 16px;
+  border-radius: 12px;
   transition: width 0.5s ease-in-out;
+}
+
+.progress-percentage {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c2c2c;
+  min-width: 50px;
+  text-align: right;
+}
+
+.progress-detail {
+  font-size: 12px;
+  color: #666;
+  min-width: 70px;
+}
+
+/* Loading and Empty States */
+.loading-metas, .no-metas {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+}
+
+.no-metas p {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #666;
+}
+
+.no-metas-hint {
+  font-size: 14px !important;
+  color: #888 !important;
+}
+
+/* Year Selector */
+.anio-selector {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.anio-selector label {
+  font-weight: 500;
+  color: #4a0000;
+}
+
+.anio-selector select {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 2px solid #8B0000;
+  border-radius: 8px;
+  background: white;
+  color: #4a0000;
+  cursor: pointer;
 }
 
 /* Chart Section Styles */
@@ -111,14 +207,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  padding: 30px;
 }
 
 .chart-title {
   font-size: 20px;
   font-weight: 500;
   color: #2c2c2c;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   text-align: center;
+}
+
+.chart-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
 }
 
 .pie-chart-container {

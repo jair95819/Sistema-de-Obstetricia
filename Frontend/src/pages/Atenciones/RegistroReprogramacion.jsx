@@ -18,35 +18,20 @@ const RegistroReprogramacion = ({ onNavigate, onBack }) => {
     setMenuOpen(!menuOpen);
   };
 
-  // Datos de ejemplo de atenciones (simula la búsqueda en BD)
-  const atencionesDB = {
-    'AT-001': {
-      dniPaciente: '12345678',
-      fechaOriginal: '2025-01-15',
-      nombrePaciente: 'María García López'
-    },
-    'AT-002': {
-      dniPaciente: '87654321',
-      fechaOriginal: '2025-01-16',
-      nombrePaciente: 'Ana Rodríguez Sánchez'
-    },
-    'AT-003': {
-      dniPaciente: '11223344',
-      fechaOriginal: '2025-01-17',
-      nombrePaciente: 'Carmen Flores Torres'
-    }
-  };
-
   const handleSearch = () => {
-    const atencion = atencionesDB[searchAtencion.toUpperCase()];
+    // Buscar en atenciones guardadas en localStorage
+    const atencionesGuardadas = localStorage.getItem('atenciones');
+    const atenciones = atencionesGuardadas ? JSON.parse(atencionesGuardadas) : [];
+    
+    const atencion = atenciones.find(a => a.id.toUpperCase() === searchAtencion.toUpperCase());
     
     if (atencion) {
       // Autocompletar campos si se encuentra la atención
       setFormData({
         ...formData,
-        nroAtencion: searchAtencion.toUpperCase(),
+        nroAtencion: atencion.id,
         dniPaciente: atencion.dniPaciente,
-        fechaOriginal: atencion.fechaOriginal
+        fechaOriginal: atencion.fechaRealizacion
       });
       setAtencionFound(true);
       console.log('Atención encontrada:', atencion);

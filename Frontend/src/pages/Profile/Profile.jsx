@@ -4,7 +4,7 @@ import './Profile.css';
 
 const API_URL = 'http://localhost:4000/api';
 
-const Profile = ({ onNavigate }) => {
+const Profile = ({ onNavigate, onBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -110,7 +110,12 @@ const Profile = ({ onNavigate }) => {
       <main className="profile-main">
         <div className="profile-content">
           <div className="profile-header-section">
-            <h2 className="profile-page-title">Mi Perfil</h2>
+            <div className="profile-title-row">
+              <button className="back-button" onClick={onBack} aria-label="Volver">
+                ←
+              </button>
+              <h2 className="profile-page-title">Mi Perfil</h2>
+            </div>
             {esObstetra && (
               <button 
                 className="health-position-button"
@@ -131,13 +136,13 @@ const Profile = ({ onNavigate }) => {
               </div>
             </div>
             <h3 className="profile-name">
-              {esObstetra 
-                ? `${obstetra.nombres} ${obstetra.apellidos}`
-                : profileData?.username
+              {esObstetra && obstetra
+                ? `${obstetra.nombres || ''} ${obstetra.apellidos || ''}`
+                : profileData?.username || 'Usuario'
               }
             </h3>
             <p className="profile-title">
-              {esObstetra 
+              {esObstetra && obstetra
                 ? obstetra.titulo_profesional || 'Obstetra'
                 : profileData?.nombre_rol || 'Usuario'
               }
@@ -146,18 +151,18 @@ const Profile = ({ onNavigate }) => {
 
           {/* Information Cards */}
           <div className="info-cards-container">
-            {esObstetra ? (
+            {esObstetra && obstetra ? (
               <>
                 {/* Personal Information Card - Para Obstetras */}
                 <div className="info-card personal-info">
                   <h4 className="info-card-title">Información Personal</h4>
                   <div className="info-item">
                     <span className="info-label">Nombre:</span>
-                    <span className="info-value">{obstetra.nombres}</span>
+                    <span className="info-value">{obstetra.nombres || '-'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Apellidos:</span>
-                    <span className="info-value">{obstetra.apellidos}</span>
+                    <span className="info-value">{obstetra.apellidos || '-'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Fecha Nacimiento:</span>
@@ -169,7 +174,7 @@ const Profile = ({ onNavigate }) => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">Correo:</span>
-                    <span className="info-value">{profileData.email}</span>
+                    <span className="info-value">{profileData?.email || '-'}</span>
                   </div>
                 </div>
 
@@ -182,7 +187,7 @@ const Profile = ({ onNavigate }) => {
                   </div>
                   <div className="info-item">
                     <span className="info-label">Nro. De Documento:</span>
-                    <span className="info-value">{profileData.NumDoc}</span>
+                    <span className="info-value">{profileData?.NumDoc || '-'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Título Profesional:</span>

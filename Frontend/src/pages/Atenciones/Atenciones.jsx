@@ -27,12 +27,6 @@ const Atenciones = ({ onNavigate, onBack, onHome }) => {
       title: 'Registrar Reprogramaciones',
       emoji: '📅',
       action: () => onNavigate('registro-reprogramacion')
-    },
-    {
-      id: 4,
-      title: 'Generar Referencias',
-      emoji: '📄',
-      action: () => onNavigate('generar-referencia')
     }
   ];
 
@@ -69,7 +63,12 @@ const Atenciones = ({ onNavigate, onBack, onHome }) => {
 
       {/* Main Content */}
       <main className="atenciones-main">
-        <h2 className="atenciones-title">Atenciones</h2>
+        <div className="atenciones-title-row">
+          <button className="back-button" onClick={onBack} aria-label="Volver">
+            ←
+          </button>
+          <h2 className="atenciones-title">Atenciones</h2>
+        </div>
 
         {/* Cards Grid */}
         <div className="atenciones-grid">

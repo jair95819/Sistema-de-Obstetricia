@@ -11,6 +11,7 @@ import usuarioRoutes from "./routes/usuarioroutes.js";
 import rolRoutes from "./routes/rol.routes.js";
 import areaRoutes from "./routes/area.routes.js";
 import obstetraProgramaRoutes from "./routes/obstetraPrograma.routes.js";
+import atencionRoutes from "./routes/atencion.routes.js";
 
 const app = express();
 
@@ -32,4 +33,5 @@ app.use("/api/usuarios", usuarioRoutes);
 app.use("/api", rolRoutes);
 app.use("/api", areaRoutes);
 app.use("/api", obstetraProgramaRoutes);
+app.use("/api", atencionRoutes);
 export default app;

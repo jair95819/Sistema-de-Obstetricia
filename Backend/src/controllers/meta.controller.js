@@ -1,6 +1,8 @@
 import {
   getAllMetas,
   getMetaById,
+  getMetasByAnio,
+  getMetasConProgreso,
   createMeta,
   updateMeta,
   deleteMeta,
@@ -35,6 +37,39 @@ export const getMeta = async (req, res) => {
   }
 };
 
+// GET /api/metas/anio/:anio - Obtener metas por año
+export const getMetasPorAnio = async (req, res) => {
+  try {
+    const { anio } = req.params;
+    const metas = await getMetasByAnio(parseInt(anio));
+    res.json(metas);
+  } catch (error) {
+    console.error('Error al obtener metas por año:', error);
+    res.status(500).json({ message: 'Error al obtener metas', error: error.message });
+  }
+};
+
+// GET /api/metas/progreso/:anio - Obtener metas con progreso calculado
+export const getMetasProgreso = async (req, res) => {
+  try {
+    const { anio } = req.params;
+    const metas = await getMetasConProgreso(parseInt(anio));
+    
+    // Calcular porcentaje de progreso para cada meta
+    const metasConPorcentaje = metas.map(meta => ({
+      ...meta,
+      porcentaje: meta.meta_cantidad > 0 
+        ? Math.min(100, Math.round((meta.atenciones_realizadas / meta.meta_cantidad) * 100))
+        : 0
+    }));
+    
+    res.json(metasConPorcentaje);
+  } catch (error) {
+    console.error('Error al obtener progreso de metas:', error);
+    res.status(500).json({ message: 'Error al obtener progreso', error: error.message });
+  }
+};
+
 // GET /api/metas/search/:term - Buscar metas
 export const buscarMetas = async (req, res) => {
   try {
@@ -50,24 +85,42 @@ export const buscarMetas = async (req, res) => {
 // POST /api/metas - Crear una nueva meta
 export const crearMeta = async (req, res) => {
   try {
-    const { nombre, descripcion, categoria, valor_objetivo, valor_actual, unidad_medida, fecha_inicio, fecha_fin, responsable, estado } = req.body;
+    const { 
+      ProgramaDeAtencionID, 
+      anio, 
+      cantidad_atenciones, 
+      observaciones, 
+      estado, 
+      edad_objetivo_base, 
+      edad_objetivo_limite 
+    } = req.body;
     
-    // Validaciones
-    if (!nombre || !categoria || !valor_objetivo || !fecha_inicio || !fecha_fin || !responsable) {
-      return res.status(400).json({ message: 'Todos los campos obligatorios deben ser completados' });
+    // Validaciones - verificar que los valores existan y no sean vacíos
+    const programaId = ProgramaDeAtencionID !== '' && ProgramaDeAtencionID !== null && ProgramaDeAtencionID !== undefined 
+      ? parseInt(ProgramaDeAtencionID) : null;
+    const anioNum = anio !== '' && anio !== null && anio !== undefined 
+      ? parseInt(anio) : null;
+    const cantidadNum = cantidad_atenciones !== '' && cantidad_atenciones !== null && cantidad_atenciones !== undefined 
+      ? parseInt(cantidad_atenciones) : null;
+    
+    if (!programaId || isNaN(programaId)) {
+      return res.status(400).json({ message: 'El programa es obligatorio' });
+    }
+    if (!anioNum || isNaN(anioNum)) {
+      return res.status(400).json({ message: 'El año es obligatorio' });
+    }
+    if (!cantidadNum || isNaN(cantidadNum)) {
+      return res.status(400).json({ message: 'La cantidad de atenciones es obligatoria' });
     }
     
     const nuevoId = await createMeta({
-      nombre,
-      descripcion: descripcion || '',
-      categoria,
-      valor_objetivo: parseInt(valor_objetivo),
-      valor_actual: parseInt(valor_actual) || 0,
-      unidad_medida: unidad_medida || 'Unidades',
-      fecha_inicio,
-      fecha_fin,
-      responsable,
-      estado: estado || 'En Progreso'
+      ProgramaDeAtencionID: programaId,
+      anio: anioNum,
+      cantidad_atenciones: cantidadNum,
+      observaciones: observaciones || '',
+      estado: estado !== undefined ? estado : true,
+      edad_objetivo_base: edad_objetivo_base ? parseInt(edad_objetivo_base) : null,
+      edad_objetivo_limite: edad_objetivo_limite ? parseInt(edad_objetivo_limite) : null
     });
     
     const nuevaMeta = await getMetaById(nuevoId);
@@ -82,7 +135,15 @@ export const crearMeta = async (req, res) => {
 export const actualizarMeta = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, categoria, valor_objetivo, valor_actual, unidad_medida, fecha_inicio, fecha_fin, responsable, estado } = req.body;
+    const { 
+      ProgramaDeAtencionID, 
+      anio, 
+      cantidad_atenciones, 
+      observaciones, 
+      estado, 
+      edad_objetivo_base, 
+      edad_objetivo_limite 
+    } = req.body;
     
     // Verificar si existe la meta
     const metaExistente = await getMetaById(parseInt(id));
@@ -91,21 +152,18 @@ export const actualizarMeta = async (req, res) => {
     }
     
     // Validaciones
-    if (!nombre || !categoria || !valor_objetivo || !fecha_inicio || !fecha_fin || !responsable) {
-      return res.status(400).json({ message: 'Todos los campos obligatorios deben ser completados' });
+    if (!ProgramaDeAtencionID || !anio || !cantidad_atenciones) {
+      return res.status(400).json({ message: 'Programa, año y cantidad de atenciones son obligatorios' });
     }
     
     await updateMeta(parseInt(id), {
-      nombre,
-      descripcion: descripcion || '',
-      categoria,
-      valor_objetivo: parseInt(valor_objetivo),
-      valor_actual: parseInt(valor_actual) || 0,
-      unidad_medida: unidad_medida || 'Unidades',
-      fecha_inicio,
-      fecha_fin,
-      responsable,
-      estado: estado || 'En Progreso'
+      ProgramaDeAtencionID: parseInt(ProgramaDeAtencionID),
+      anio: parseInt(anio),
+      cantidad_atenciones: parseInt(cantidad_atenciones),
+      observaciones: observaciones || '',
+      estado: estado !== undefined ? estado : true,
+      edad_objetivo_base: edad_objetivo_base ? parseInt(edad_objetivo_base) : null,
+      edad_objetivo_limite: edad_objetivo_limite ? parseInt(edad_objetivo_limite) : null
     });
     
     const metaActualizada = await getMetaById(parseInt(id));
@@ -134,3 +192,4 @@ export const eliminarMeta = async (req, res) => {
     res.status(500).json({ message: 'Error al eliminar meta', error: error.message });
   }
 };
+

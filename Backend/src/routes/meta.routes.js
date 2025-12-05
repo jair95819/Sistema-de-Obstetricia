@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   getMetas,
   getMeta,
+  getMetasPorAnio,
+  getMetasProgreso,
   buscarMetas,
   crearMeta,
   actualizarMeta,
@@ -15,6 +17,12 @@ router.get('/metas', getMetas);
 
 // GET /api/metas/search/:term - Buscar metas
 router.get('/metas/search/:term', buscarMetas);
+
+// GET /api/metas/anio/:anio - Obtener metas por año
+router.get('/metas/anio/:anio', getMetasPorAnio);
+
+// GET /api/metas/progreso/:anio - Obtener metas con progreso
+router.get('/metas/progreso/:anio', getMetasProgreso);
 
 // GET /api/metas/:id - Obtener una meta por ID
 router.get('/metas/:id', getMeta);

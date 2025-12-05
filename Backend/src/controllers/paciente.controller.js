@@ -51,28 +51,31 @@ export const buscarPacientes = async (req, res) => {
 // POST /api/pacientes - Crear un nuevo paciente
 export const crearPaciente = async (req, res) => {
   try {
-    const { NumDoc, nombres, apellidos, fecha_nacimiento, telefono, direccion, tipo_seguro, estado } = req.body;
+    const { nro_documento, nombres, apellidos, fecha_nacimiento, nacionalidad, direccion, telefono, email, tipo_sangre, tiene_sis, is_active } = req.body;
     
     // Validaciones
-    if (!NumDoc || !nombres || !apellidos || !fecha_nacimiento) {
-      return res.status(400).json({ message: 'Todos los campos obligatorios deben ser completados' });
+    if (!nro_documento || !nombres || !apellidos) {
+      return res.status(400).json({ message: 'Número de documento, nombres y apellidos son obligatorios' });
     }
     
-    // Verificar si ya existe un paciente con el mismo NumDoc
-    const existeNumDoc = await getPacienteByNumDoc(NumDoc);
+    // Verificar si ya existe un paciente con el mismo nro_documento
+    const existeNumDoc = await getPacienteByNumDoc(nro_documento);
     if (existeNumDoc) {
       return res.status(400).json({ message: 'Ya existe un paciente con ese número de documento' });
     }
     
     const nuevoId = await createPaciente({
-      NumDoc,
+      nro_documento,
       nombres,
       apellidos,
-      fecha_nacimiento,
-      telefono: telefono || null,
+      fecha_nacimiento: fecha_nacimiento || null,
+      nacionalidad: nacionalidad || 'Peruana',
       direccion: direccion || null,
-      tipo_seguro: tipo_seguro || 'SIS',
-      estado: estado || 'Activo'
+      telefono: telefono || null,
+      email: email || null,
+      tipo_sangre: tipo_sangre || null,
+      tiene_sis: tiene_sis !== undefined ? tiene_sis : true,
+      is_active: is_active !== undefined ? is_active : true
     });
     
     const nuevoPaciente = await getPacienteById(nuevoId);
@@ -87,7 +90,7 @@ export const crearPaciente = async (req, res) => {
 export const actualizarPaciente = async (req, res) => {
   try {
     const { id } = req.params;
-    const { NumDoc, nombres, apellidos, fecha_nacimiento, telefono, direccion, tipo_seguro, estado } = req.body;
+    const { nro_documento, nombres, apellidos, fecha_nacimiento, nacionalidad, direccion, telefono, email, tipo_sangre, tiene_sis, is_active } = req.body;
     
     // Verificar si existe el paciente
     const pacienteExistente = await getPacienteById(parseInt(id));
@@ -96,25 +99,28 @@ export const actualizarPaciente = async (req, res) => {
     }
     
     // Validaciones
-    if (!NumDoc || !nombres || !apellidos || !fecha_nacimiento) {
-      return res.status(400).json({ message: 'Todos los campos obligatorios deben ser completados' });
+    if (!nro_documento || !nombres || !apellidos) {
+      return res.status(400).json({ message: 'Número de documento, nombres y apellidos son obligatorios' });
     }
     
-    // Verificar si el NumDoc ya está en uso por otro paciente
-    const existeNumDoc = await getPacienteByNumDoc(NumDoc);
+    // Verificar si el nro_documento ya está en uso por otro paciente
+    const existeNumDoc = await getPacienteByNumDoc(nro_documento);
     if (existeNumDoc && existeNumDoc.PacienteID !== parseInt(id)) {
       return res.status(400).json({ message: 'Ya existe otro paciente con ese número de documento' });
     }
     
     await updatePaciente(parseInt(id), {
-      NumDoc,
+      nro_documento,
       nombres,
       apellidos,
-      fecha_nacimiento,
-      telefono: telefono || null,
+      fecha_nacimiento: fecha_nacimiento || null,
+      nacionalidad: nacionalidad || 'Peruana',
       direccion: direccion || null,
-      tipo_seguro: tipo_seguro || 'SIS',
-      estado: estado || 'Activo'
+      telefono: telefono || null,
+      email: email || null,
+      tipo_sangre: tipo_sangre || null,
+      tiene_sis: tiene_sis !== undefined ? tiene_sis : true,
+      is_active: is_active !== undefined ? is_active : true
     });
     
     const pacienteActualizado = await getPacienteById(parseInt(id));

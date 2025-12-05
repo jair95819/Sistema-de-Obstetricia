@@ -13,36 +13,39 @@ const VisualizarAtenciones = ({ onNavigate, onBack }) => {
     setMenuOpen(!menuOpen);
   };
 
-  // Cargar atenciones del localStorage al montar el componente
-  useEffect(() => {
-    const atencionesGuardadas = localStorage.getItem('atenciones');
-    if (atencionesGuardadas) {
-      const atencionesData = JSON.parse(atencionesGuardadas);
-      setAtenciones(atencionesData);
-    } else {
-      // Datos de ejemplo si no hay nada en localStorage
-      const datosEjemplo = [
-        {
-          id: 'AT-001',
-          dniPaciente: '12345678',
-          nombrePaciente: 'María García López',
-          fechaRealizacion: '2025-01-15',
-          tipoAtencion: 'Programa 1: Control Prenatal',
-          estado: 'Completada',
-          seReprogramo: 'No'
-        },
-        {
-          id: 'AT-002',
-          dniPaciente: '87654321',
-          nombrePaciente: 'Ana Rodríguez Sánchez',
-          fechaRealizacion: '2025-01-16',
-          tipoAtencion: 'Programa 2: Planificación Familiar',
-          estado: 'Pendiente seguimiento',
-          seReprogramo: 'Sí'
-        }
-      ];
-      setAtenciones(datosEjemplo);
+  // Función para formatear fecha sin problemas de timezone
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    // Si la fecha viene en formato YYYY-MM-DD, parseamos directamente
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
     }
+    // Si es otro formato, usar toLocaleDateString pero con ajuste
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('es-PE');
+  };
+
+  // Cargar atenciones desde la API al montar el componente
+  useEffect(() => {
+    const cargarAtenciones = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/api/atenciones');
+        if (response.ok) {
+          const data = await response.json();
+          setAtenciones(data);
+        } else {
+          console.error('Error al cargar atenciones');
+          setAtenciones([]);
+        }
+      } catch (error) {
+        console.error('Error al cargar atenciones:', error);
+        setAtenciones([]);
+      }
+    };
+    
+    cargarAtenciones();
   }, []);
 
   const handleSearch = () => {
@@ -202,7 +205,7 @@ const VisualizarAtenciones = ({ onNavigate, onBack }) => {
                     <td className="id-column">{atencion.id}</td>
                     <td>{atencion.dniPaciente}</td>
                     <td className="nombre-column">{atencion.nombrePaciente}</td>
-                    <td>{new Date(atencion.fechaRealizacion).toLocaleDateString('es-PE')}</td>
+                    <td>{formatDate(atencion.fechaRealizacion)}</td>
                     <td>{atencion.tipoAtencion}</td>
                     <td>
                       <span className={`status-badge ${getStatusClass(atencion.estado)}`}>
